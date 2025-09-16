@@ -33,7 +33,7 @@
         with pkgs; {
           devShells.default = pkgs.mkShell {
             packages = [
-              rust-bin.nightly.latest.default
+              rust-bin.beta.latest.default
               cargo
               trunk
               rustfmt
