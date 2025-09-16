@@ -43,7 +43,7 @@ impl Component for ChatClient {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        Self {
+        let client = Self {
             ws_sender: None,
             messages: Vec::new(),
             input_text: String::new(),
@@ -51,7 +51,10 @@ impl Component for ChatClient {
             room_id: 0,
             connected: false,
             uuid: Uuid::new_v4(),
-        }
+        };
+        ctx.link().send_message(Msg::Connect);
+
+        client
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -186,8 +189,6 @@ impl Component for ChatClient {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let on_connect = ctx.link().callback(|_: MouseEvent| Msg::Connect);
-        let on_disconnect = ctx.link().callback(|_: MouseEvent| Msg::Disconnect);
         let on_send = ctx.link().callback(|_: MouseEvent| Msg::SendMessage);
         let on_input = ctx.link().batch_callback(|e: InputEvent| {
             let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
@@ -197,13 +198,6 @@ impl Component for ChatClient {
             <div class="chat-client">
                 <div class="chat-header">
                     <h1>{"Chat Client"}</h1>
-                    <div class="connection-controls">
-                        if !self.connected {
-                            <button onclick={on_connect}>{"Connect"}</button>
-                        } else {
-                            <button onclick={on_disconnect}>{"Disconnect"}</button>
-                        }
-                    </div>
                 </div>
                 <div class="input-area">
                     <input
@@ -258,12 +252,14 @@ impl ChatClient {
                 </div>
             },
             TalkProtocol::UsernameChanged {
+                unixtime,
                 username,
                 old_username,
                 ..
             } => html! {
                 <div class="system-message">
-                    {format!("{} changed name to {}", old_username, username)}
+                <span class="time">{format!("{} ", Self::format_timestamp(*unixtime))}</span>
+                <span class="">{format!("{} changed name to {}", old_username, username)}</span>
                 </div>
             },
             TalkProtocol::Error { code, message } => html! {
