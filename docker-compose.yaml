@@ -14,7 +14,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 10s
+      start_period: 5s
     volumes:
       - tui_pg_volume:/var/lib/postgresql/data
     networks:
@@ -42,12 +42,18 @@ services:
         condition: service_started
       redis-node-3:
         condition: service_started
+      redis-node-4:
+        condition: service_started
+      redis-node-5:
+        condition: service_started
+      redis-node-6:
+        condition: service_started
 
   tuitalk_backend_1:
     container_name: backend_1
     build: rust
     environment:
-      - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379
+      - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379,redis-4:6379,redis-5:6379,redis-6:6379
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -65,12 +71,18 @@ services:
         condition: service_started
       redis-node-3:
         condition: service_started
+      redis-node-4:
+        condition: service_started
+      redis-node-5:
+        condition: service_started
+      redis-node-6:
+        condition: service_started
 
   tuitalk_backend_2:
     container_name: backend_2
     build: rust
     environment:
-      - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379
+      - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379,redis-4:6379,redis-5:6379,redis-6:6379
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -87,6 +99,12 @@ services:
       redis-node-2:
         condition: service_started
       redis-node-3:
+        condition: service_started
+      redis-node-4:
+        condition: service_started
+      redis-node-5:
+        condition: service_started
+      redis-node-6:
         condition: service_started
 
   loadbalancer:
@@ -110,10 +128,13 @@ services:
       - redis-node-1
       - redis-node-2
       - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
     command: >
       sh -c "
       sleep 10;
-      echo 'yes' | redis-cli --cluster create redis-1:6379 redis-2:6379 redis-3:6379 --cluster-replicas 0;
+      echo 'yes' | redis-cli --cluster create redis-1:6379 redis-2:6379 redis-3:6379 redis-4:6379 redis-5:6379 redis-6:6379 --cluster-replicas 1;
       "
   redis-node-1:
     build: redis-cluster
@@ -148,6 +169,38 @@ services:
     networks:
       - loadbalancing
 
+  redis-node-4:
+    build: redis-cluster
+    container_name: redis-4
+    ports:
+      - "7004:6379"
+    volumes:
+      - redis-data-4:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - loadbalancing
+
+  redis-node-5:
+    build: redis-cluster
+    container_name: redis-5
+    ports:
+      - "7005:6379"
+    volumes:
+      - redis-data-5:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - loadbalancing
+
+  redis-node-6:
+    build: redis-cluster
+    container_name: redis-6
+    ports:
+      - "7006:6379"
+    volumes:
+      - redis-data-6:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - loadbalancing
 networks:
   loadbalancing:
     driver: bridge
@@ -156,4 +209,7 @@ volumes:
   redis-data-1:
   redis-data-2:
   redis-data-3:
+  redis-data-4:
+  redis-data-5:
+  redis-data-6:
   tui_pg_volume:
