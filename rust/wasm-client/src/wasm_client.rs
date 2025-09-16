@@ -1,15 +1,17 @@
+use chrono::{Local, TimeZone, Utc};
 use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender, unbounded};
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
+use gloo_utils::document;
+use js_sys::Date;
 use shared::wasm::*;
 use shared::{TalkMessage, TalkProtocol};
 use uuid::Uuid;
 use wasm_bindgen_futures::js_sys;
-use yew::prelude::*;
 use web_sys::HtmlElement;
-use gloo_utils::document;
 use web_sys::wasm_bindgen::JsCast;
+use yew::prelude::*;
 pub struct ChatClient {
     ws_sender: Option<UnboundedSender<TalkProtocol>>,
     messages: Vec<TalkProtocol>,
@@ -31,6 +33,11 @@ pub enum Msg {
     ConnectionClosed,
 }
 
+pub fn get_unix_timestamp() -> u64 {
+    let ms = Date::now();
+    (ms / 1000.0) as u64
+}
+
 impl Component for ChatClient {
     type Message = Msg;
     type Properties = ();
@@ -40,15 +47,15 @@ impl Component for ChatClient {
             ws_sender: None,
             messages: Vec::new(),
             input_text: String::new(),
-            username: "user".to_string(),
-            room_id: 1,
+            username: "Client".to_string(),
+            room_id: 0,
             connected: false,
             uuid: Uuid::new_v4(),
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-         if let Some(messages_container) = document().get_element_by_id("messages-container") {
+        if let Some(messages_container) = document().get_element_by_id("messages-container") {
             let messages_container = messages_container.dyn_into::<HtmlElement>().unwrap();
             messages_container.set_scroll_top(messages_container.scroll_height());
         }
@@ -58,7 +65,7 @@ impl Component for ChatClient {
                     return false;
                 }
 
-                let url = format!("ws://localhost:9999/ws");
+                let url = format!("ws://localhost:8080");
                 match WebSocket::open(&url) {
                     Ok(ws) => {
                         let (write, read) = ws.split();
@@ -90,7 +97,7 @@ impl Component for ChatClient {
                                 room_id: self.room_id,
                                 uuid: self.uuid,
                                 username: self.username.clone(),
-                                unixtime: js_sys::Date::now() as u64,
+                                unixtime: get_unix_timestamp(),
                             };
                             let _ = sender.unbounded_send(join_msg);
                         }
@@ -109,7 +116,7 @@ impl Component for ChatClient {
                         room_id: self.room_id,
                         uuid: self.uuid,
                         username: self.username.clone(),
-                        unixtime: js_sys::Date::now() as u64,
+                        unixtime: get_unix_timestamp(),
                     };
                     let _ = sender.unbounded_send(leave_msg);
 
@@ -129,7 +136,7 @@ impl Component for ChatClient {
                                 username: self.username.clone(),
                                 text: self.input_text.clone(),
                                 room_id: self.room_id,
-                                unixtime: js_sys::Date::now() as u64,
+                                unixtime: get_unix_timestamp(),
                             },
                         };
                         let _ = sender.unbounded_send(message);
@@ -150,7 +157,7 @@ impl Component for ChatClient {
                         uuid: self.uuid,
                         username: username.clone(),
                         old_username: self.username.clone(),
-                        unixtime: js_sys::Date::now() as u64,
+                        unixtime: get_unix_timestamp(),
                     };
                     let _ = sender.unbounded_send(change_msg);
                 }
@@ -186,15 +193,6 @@ impl Component for ChatClient {
             let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
             Some(Msg::UpdateInput(input.value()))
         });
-        let on_username_change = ctx.link().batch_callback(|e: Event| {
-            let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
-            Some(Msg::UpdateUsername(input.value()))
-        });
-        let on_room_change = ctx.link().batch_callback(|e: Event| {
-            let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
-            Some(Msg::UpdateRoomId(input.value()))
-        });
-
         html! {
             <div class="chat-client">
                 <div class="chat-header">
@@ -207,26 +205,6 @@ impl Component for ChatClient {
                         }
                     </div>
                 </div>
-
-                <div class="user-info">
-                    <input
-                        type="text"
-                        value={self.username.clone()}
-                        placeholder="Username"
-                        onchange={on_username_change}
-                    />
-                    <input
-                        type="number"
-                        value={self.room_id.to_string()}
-                        placeholder="Room ID"
-                        onchange={on_room_change}
-                    />
-                </div>
-
-                <div id="messages-container" class="messages">
-                    {for self.messages.iter().map(|msg| self.render_message(msg))}
-                </div>
-
                 <div class="input-area">
                     <input
                         type="text"
@@ -246,6 +224,9 @@ impl Component for ChatClient {
                         {"Send"}
                     </button>
                 </div>
+                <div id="messages-container" class="messages">
+                    {for self.messages.iter().map(|msg| self.render_message(msg))}
+                </div>
             </div>
         }
     }
@@ -255,30 +236,32 @@ impl ChatClient {
     fn render_message(&self, msg: &TalkProtocol) -> Html {
         match msg {
             TalkProtocol::PostMessage { message } => {
-                let is_own_message = message.uuid == self.uuid;
-                let message_class = if is_own_message { "message own" } else { "message other" };
-                
                 html! {
-                    <div class={message_class}>
-                        <div class="message-header">
-                            <span class="username">{&message.username}</span>
-                            <span class="time">{Self::format_time(message.unixtime)}</span>
-                        </div>
-                        <div class="message-text">{&message.text}</div>
+                    <div class="message-header">
+                        <span class="time">{format!("{} ", Self::format_timestamp(message.unixtime))}</span>
+                        <span class="username">{format!("{}: ", &message.username)}</span>
+                        <span class="message-text">{&message.text}</span>
                     </div>
                 }
             }
-            TalkProtocol::UserJoined { username, room_id, .. } => html! {
+            TalkProtocol::UserJoined {
+                username, unixtime, ..
+            } => html! {
                 <div class="system-message">
-                    {format!("{} joined room {}", username, room_id)}
+                    <span class="time">{format!("{} ", Self::format_timestamp(*unixtime))}</span>
+                    <span class="">{format!("{} joined room", username)}</span>
                 </div>
             },
-            TalkProtocol::UserLeft { username, room_id, .. } => html! {
+            TalkProtocol::UserLeft { username, .. } => html! {
                 <div class="system-message">
-                    {format!("{} left room {}", username, room_id)}
+                    {format!("{} left room", username)}
                 </div>
             },
-            TalkProtocol::UsernameChanged { username, old_username, .. } => html! {
+            TalkProtocol::UsernameChanged {
+                username,
+                old_username,
+                ..
+            } => html! {
                 <div class="system-message">
                     {format!("{} changed name to {}", old_username, username)}
                 </div>
@@ -291,9 +274,9 @@ impl ChatClient {
             _ => html! {},
         }
     }
-    fn format_time(unixtime: u64) -> String {
-        let date = js_sys::Date::new(&js_sys::Date::new_0().constructor());
-        date.set_time(unixtime as f64 * 1000.0);
-        format!("{}:{}", date.get_hours(), date.get_minutes())
+
+    fn format_timestamp(unixtime: u64) -> String {
+        let timestamp = Utc.timestamp_opt(unixtime as i64, 0).single().unwrap();
+        format!("<{}> ", timestamp.with_timezone(&Local).format("%H:%M"))
     }
 }
