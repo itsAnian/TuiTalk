@@ -288,7 +288,7 @@ async fn publish_message(
     Ok(())
 }
 
-pub async fn start_ws_server() -> Result<(), std::io::Error> {
+pub async fn start_ws_server() -> Result<()> {
     let addr = env::args()
         .nth(1)
         .unwrap_or_else(|| "0.0.0.0:8080".to_string());
@@ -301,9 +301,12 @@ pub async fn start_ws_server() -> Result<(), std::io::Error> {
     let redis_con = create_redis_connection()
         .await
         .expect("Redis connection failed");
+
     let shared_con: SharedRedis = Arc::new(TMutex::new(redis_con));
 
-    let pg_conn = Arc::new(TMutex::new(establish_connection()));
+    let pg_conn = Arc::new(TMutex::new(establish_connection()?));
+
+    println!("Connected to database");
 
     while let Ok((stream, addr)) = listener.accept().await {
         let rd_clone = Arc::clone(&shared_con);
