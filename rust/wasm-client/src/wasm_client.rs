@@ -1,25 +1,26 @@
+use crate::command;
 use chrono::{Local, TimeZone, Utc};
 use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender, unbounded};
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
 use gloo_utils::document;
-use js_sys::Date;
-use shared::wasm::*;
+use shared::wasm::{receiver_task, sender_task};
 use shared::{TalkMessage, TalkProtocol};
 use uuid::Uuid;
-use wasm_bindgen_futures::js_sys;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlElement;
 use web_sys::wasm_bindgen::JsCast;
 use yew::prelude::*;
+
 pub struct ChatClient {
-    ws_sender: Option<UnboundedSender<TalkProtocol>>,
-    messages: Vec<TalkProtocol>,
-    input_text: String,
-    username: String,
-    room_id: i32,
-    connected: bool,
-    uuid: Uuid,
+    pub ws_sender: Option<UnboundedSender<TalkProtocol>>,
+    pub messages: Vec<TalkProtocol>,
+    pub input_text: String,
+    pub username: String,
+    pub room_id: i32,
+    pub connected: bool,
+    pub uuid: Uuid,
 }
 
 pub enum Msg {
@@ -33,9 +34,9 @@ pub enum Msg {
     ConnectionClosed,
 }
 
-pub fn get_unix_timestamp() -> u64 {
-    let ms = Date::now();
-    (ms / 1000.0) as u64
+fn format_timestamp(unixtime: u64) -> String {
+    let timestamp = Utc.timestamp_opt(unixtime as i64, 0).single().unwrap();
+    format!("<{}> ", timestamp.with_timezone(&Local).format("%H:%M"))
 }
 
 impl Component for ChatClient {
@@ -52,78 +53,75 @@ impl Component for ChatClient {
             connected: false,
             uuid: Uuid::new_v4(),
         };
+
+        // One-time connect at mount
         ctx.link().send_message(Msg::Connect);
 
         client
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        if let Some(messages_container) = document().get_element_by_id("messages-container") {
-            let messages_container = messages_container.dyn_into::<HtmlElement>().unwrap();
-            messages_container.set_scroll_top(messages_container.scroll_height());
+        if let Some(container) = document().get_element_by_id("messages-container") {
+            if let Ok(container) = container.dyn_into::<HtmlElement>() {
+                container.set_scroll_top(container.scroll_height());
+            }
         }
+
         match msg {
             Msg::Connect => {
                 if self.connected {
                     return false;
                 }
 
-                let url = format!("ws://localhost:8080");
+                let url = "ws://localhost:8080".to_string();
                 match WebSocket::open(&url) {
                     Ok(ws) => {
                         let (write, read) = ws.split();
                         let (tx, rx) = unbounded();
 
-                        // Store the sender
                         self.ws_sender = Some(tx.clone());
                         self.connected = true;
 
                         // Spawn sender task
                         let link = ctx.link().clone();
-                        wasm_bindgen_futures::spawn_local(async move {
-                            sender_task(rx, write).await;
+                        spawn_local(async move {
+                            sender_task(rx, write).await; // from shared::wasm
                             link.send_message(Msg::ConnectionClosed);
                         });
 
                         // Spawn receiver task
                         let link = ctx.link().clone();
-                        wasm_bindgen_futures::spawn_local(async move {
-                            receiver_task(read, move |msg| {
-                                link.send_message(Msg::ReceivedMessage(msg));
+                        spawn_local(async move {
+                            receiver_task(read, move |msg| match msg {
+                                TalkProtocol::History { text } => {
+                                    for entry in text {
+                                        link.send_message(Msg::ReceivedMessage(entry));
+                                    }
+                                }
+                                _ => {
+                                    link.send_message(Msg::ReceivedMessage(msg));
+                                }
                             })
                             .await;
                         });
 
-                        // Send join room message
+                        // Send initial join
                         if let Some(sender) = &self.ws_sender {
-                            let join_msg = TalkProtocol::JoinRoom {
-                                room_id: self.room_id,
-                                uuid: self.uuid,
-                                username: self.username.clone(),
-                                unixtime: get_unix_timestamp(),
-                            };
+                            let join_msg =
+                                command::join_room(self.room_id, self.uuid, self.username.clone());
                             let _ = sender.unbounded_send(join_msg);
                         }
                     }
-                    Err(e) => {
-                        log::error!("Failed to connect: {:?}", e);
-                    }
+                    Err(e) => log::error!("Failed to connect: {:?}", e),
                 }
                 true
             }
 
             Msg::Disconnect => {
                 if let Some(sender) = self.ws_sender.take() {
-                    // Send leave room message
-                    let leave_msg = TalkProtocol::LeaveRoom {
-                        room_id: self.room_id,
-                        uuid: self.uuid,
-                        username: self.username.clone(),
-                        unixtime: get_unix_timestamp(),
-                    };
+                    let leave_msg =
+                        command::leave_room(self.room_id, self.uuid, self.username.clone());
                     let _ = sender.unbounded_send(leave_msg);
-
-                    // Drop sender to close connection
                     drop(sender);
                 }
                 self.connected = false;
@@ -131,18 +129,9 @@ impl Component for ChatClient {
             }
 
             Msg::SendMessage => {
-                if let Some(sender) = &self.ws_sender {
+                if let Some(sender) = self.ws_sender.clone() {
                     if !self.input_text.trim().is_empty() {
-                        let message = TalkProtocol::PostMessage {
-                            message: TalkMessage {
-                                uuid: self.uuid,
-                                username: self.username.clone(),
-                                text: self.input_text.clone(),
-                                room_id: self.room_id,
-                                unixtime: get_unix_timestamp(),
-                            },
-                        };
-                        let _ = sender.unbounded_send(message);
+                        let _ = command::parse_input(self);
                         self.input_text.clear();
                     }
                 }
@@ -154,26 +143,9 @@ impl Component for ChatClient {
                 true
             }
 
-            Msg::UpdateUsername(username) => {
-                if let Some(sender) = &self.ws_sender {
-                    let change_msg = TalkProtocol::ChangeName {
-                        uuid: self.uuid,
-                        username: username.clone(),
-                        old_username: self.username.clone(),
-                        unixtime: get_unix_timestamp(),
-                    };
-                    let _ = sender.unbounded_send(change_msg);
-                }
-                self.username = username;
-                true
-            }
+            Msg::UpdateUsername(username) => true,
 
-            Msg::UpdateRoomId(room_str) => {
-                if let Ok(room_id) = room_str.parse() {
-                    self.room_id = room_id;
-                }
-                true
-            }
+            Msg::UpdateRoomId(room_str) => true,
 
             Msg::ReceivedMessage(msg) => {
                 self.messages.push(msg);
@@ -194,6 +166,7 @@ impl Component for ChatClient {
             let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
             Some(Msg::UpdateInput(input.value()))
         });
+
         html! {
             <div class="chat-client">
                 <div class="chat-header">
@@ -203,14 +176,12 @@ impl Component for ChatClient {
                     <input
                         type="text"
                         value={self.input_text.clone()}
-                        placeholder="Type a message..."
+                        placeholder="Type a message or /command..."
                         oninput={on_input}
                         onkeypress={ctx.link().batch_callback(|e: KeyboardEvent| {
                             if e.key() == "Enter" {
                                 Some(Msg::SendMessage)
-                            } else {
-                                None
-                            }
+                            } else { None }
                         })}
                         disabled={!self.connected}
                     />
@@ -229,21 +200,19 @@ impl Component for ChatClient {
 impl ChatClient {
     fn render_message(&self, msg: &TalkProtocol) -> Html {
         match msg {
-            TalkProtocol::PostMessage { message } => {
-                html! {
-                    <div class="message-header">
-                        <span class="time">{format!("{} ", Self::format_timestamp(message.unixtime))}</span>
-                        <span class="username">{format!("{}: ", &message.username)}</span>
-                        <span class="message-text">{&message.text}</span>
-                    </div>
-                }
-            }
+            TalkProtocol::PostMessage { message } => html! {
+                <div class="message-header">
+                    <span class="time">{format!("{} ", format_timestamp(message.unixtime))}</span>
+                    <span class="username">{format!("{}: ", &message.username)}</span>
+                    <span class="message-text">{&message.text}</span>
+                </div>
+            },
             TalkProtocol::UserJoined {
                 username, unixtime, ..
             } => html! {
                 <div class="system-message">
-                    <span class="time">{format!("{} ", Self::format_timestamp(*unixtime))}</span>
-                    <span class="">{format!("{} joined room", username)}</span>
+                    <span class="time">{format!("{} ", format_timestamp(*unixtime))}</span>
+                    <span>{format!("{} joined room", username)}</span>
                 </div>
             },
             TalkProtocol::UserLeft { username, .. } => html! {
@@ -258,21 +227,17 @@ impl ChatClient {
                 ..
             } => html! {
                 <div class="system-message">
-                <span class="time">{format!("{} ", Self::format_timestamp(*unixtime))}</span>
-                <span class="">{format!("{} changed name to {}", old_username, username)}</span>
+                    <span class="time">{format!("{} ", format_timestamp(*unixtime))}</span>
+                    <span>{format!("{} changed name to {}", old_username, username)}</span>
                 </div>
             },
             TalkProtocol::Error { code, message } => html! {
-                <div class="error-message">
-                    {format!("Error {}: {}", code, message)}
-                </div>
+                <div class="error-message">{format!("Error {}: {}", code, message)}</div>
+            },
+            TalkProtocol::LocalError { message } => html! {
+                <div class="error-message">{format!("Error: {}", message)}</div>
             },
             _ => html! {},
         }
-    }
-
-    fn format_timestamp(unixtime: u64) -> String {
-        let timestamp = Utc.timestamp_opt(unixtime as i64, 0).single().unwrap();
-        format!("<{}> ", timestamp.with_timezone(&Local).format("%H:%M"))
     }
 }

@@ -1,4 +1,5 @@
 pub mod wasm_client;
+mod command;
 
 use wasm_client::ChatClient;
 
