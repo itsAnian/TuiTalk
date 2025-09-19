@@ -2,3 +2,5 @@
 /build/*
 !build/main.pdf
 /svg-inkscape/*
+/content/chapter/*
+!content/chapter/*.tex
