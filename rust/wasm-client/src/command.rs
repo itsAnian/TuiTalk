@@ -130,7 +130,7 @@ fn parse_command(app: &mut ChatClient) {
                 com = TalkProtocol::Fetch {
                     room_id: app.room_id,
                     limit,
-                    fetch_before: get_unix_timestamp(),
+                    fetch_before: get_first_message_timestamp(app),
                 };
                 if let Some(sender) = app.ws_sender.clone() {
                     let _ = sender.unbounded_send(com);
@@ -149,4 +149,19 @@ fn parse_command(app: &mut ChatClient) {
         };
         app.messages.push(com);
     }
+}
+
+pub fn get_first_message_timestamp(app: &mut ChatClient) -> u64 {
+    app.messages
+        .iter()
+        .find_map(|proto| match proto {
+            TalkProtocol::Error { .. } => None,
+            TalkProtocol::LocalError { .. } => None,
+            TalkProtocol::PostMessage { message } => Some(message.unixtime),
+            TalkProtocol::UserJoined { unixtime, .. } => Some(*unixtime),
+            TalkProtocol::UserLeft { unixtime, .. } => Some(*unixtime),
+            TalkProtocol::UsernameChanged { unixtime, .. } => Some(*unixtime),
+            _ => None,
+        })
+        .unwrap_or(get_unix_timestamp())
 }
