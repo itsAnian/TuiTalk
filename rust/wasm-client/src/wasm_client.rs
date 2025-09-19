@@ -54,7 +54,6 @@ impl Component for ChatClient {
             uuid: Uuid::new_v4(),
         };
 
-        // One-time connect at mount
         ctx.link().send_message(Msg::Connect);
 
         client
@@ -82,14 +81,12 @@ impl Component for ChatClient {
                         self.ws_sender = Some(tx.clone());
                         self.connected = true;
 
-                        // Spawn sender task
                         let link = ctx.link().clone();
                         spawn_local(async move {
-                            sender_task(rx, write).await; // from shared::wasm
+                            sender_task(rx, write).await;
                             link.send_message(Msg::ConnectionClosed);
                         });
 
-                        // Spawn receiver task
                         let link = ctx.link().clone();
                         spawn_local(async move {
                             receiver_task(read, move |msg| match msg {
@@ -105,7 +102,6 @@ impl Component for ChatClient {
                             .await;
                         });
 
-                        // Send initial join
                         if let Some(sender) = &self.ws_sender {
                             let join_msg =
                                 command::join_room(self.room_id, self.uuid, self.username.clone());

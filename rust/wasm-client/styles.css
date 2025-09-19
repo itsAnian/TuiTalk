@@ -34,11 +34,10 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 400px; /* Fixed height for scrolling */
+    max-height: 400px;
     background-color: #f9f9f9;
 }
 
-/* Remove the margin from individual messages since we have gap now */
 .message {
     padding: 10px;
     border-radius: 8px;
@@ -62,7 +61,6 @@
     gap: 10px;
 }
 
-/* Ensure the messages area is properly scrollable */
 .messages::-webkit-scrollbar {
     width: 6px;
 }

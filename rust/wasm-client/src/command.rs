@@ -8,13 +8,11 @@ use web_sys::js_sys;
 const MESSAGE_LENGTH: usize = 250;
 const USERNAME_LENGTH: usize = 15;
 
-/// Get current Unix timestamp in seconds (WASM-safe)
 pub fn get_unix_timestamp() -> u64 {
     let ms = Date::now();
     (ms / 1000.0) as u64
 }
 
-/// Build a JoinRoom message
 pub fn join_room(room_id: i32, uuid: Uuid, username: String) -> TalkProtocol {
     TalkProtocol::JoinRoom {
         room_id,
@@ -24,7 +22,6 @@ pub fn join_room(room_id: i32, uuid: Uuid, username: String) -> TalkProtocol {
     }
 }
 
-/// Build a LeaveRoom message
 pub fn leave_room(room_id: i32, uuid: Uuid, username: String) -> TalkProtocol {
     TalkProtocol::LeaveRoom {
         room_id,
@@ -34,7 +31,6 @@ pub fn leave_room(room_id: i32, uuid: Uuid, username: String) -> TalkProtocol {
     }
 }
 
-/// Parse user input into a TalkProtocol message
 pub fn parse_input(app: &mut ChatClient) {
     let trimmed = app.input_text.trim();
 
@@ -69,8 +65,7 @@ pub fn parse_input(app: &mut ChatClient) {
         }
     }
 }
-// app: &mut app::App
-/// Handle slash commands (/name, /room, /clear)
+
 fn parse_command(app: &mut ChatClient) {
     let command = app.input_text.trim_start_matches('/').trim();
 
@@ -135,7 +130,7 @@ fn parse_command(app: &mut ChatClient) {
                 com = TalkProtocol::Fetch {
                     room_id: app.room_id,
                     limit,
-                    fetch_before: get_unix_timestamp(), // fetch before now
+                    fetch_before: get_unix_timestamp(),
                 };
                 if let Some(sender) = app.ws_sender.clone() {
                     let _ = sender.unbounded_send(com);
