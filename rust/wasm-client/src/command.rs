@@ -122,6 +122,9 @@ fn parse_command(app: &mut ChatClient) {
         }
     } else if command == "clear" {
         app.messages.clear();
+    } else if command == "help" {
+        let com = parse_help();
+        app.messages.push(com);
     } else if command.starts_with("fetch") {
         let limit_str = command.trim_start_matches("fetch").trim();
         let mut com;
@@ -164,4 +167,15 @@ pub fn get_first_message_timestamp(app: &mut ChatClient) -> u64 {
             _ => None,
         })
         .unwrap_or(get_unix_timestamp())
+}
+
+fn parse_help() -> TalkProtocol {
+    TalkProtocol::LocalInformation {
+        message: "/help to show this command
+        /name {string} changes the name to the given string
+        /room {int} changes the room to the given number
+        /fetch {number} fetches the given number of messages up from the first message in your history
+        /clear clears the chat"
+            .to_string(),
+    }
 }

@@ -233,6 +233,11 @@ impl ChatClient {
             TalkProtocol::LocalError { message } => html! {
                 <div class="error-message">{format!("Error: {}", message)}</div>
             },
+            TalkProtocol::LocalInformation { message } => html! {
+                <div class="message" style="white-space: pre-line;">
+                    {format!("Info: {}", message.trim_end())}
+                </div>
+            },
             _ => html! {},
         }
     }
