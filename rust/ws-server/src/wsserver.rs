@@ -190,13 +190,8 @@ async fn handle_message(
             }
         }
         // Server -> Client events typically don't need handling here
-        TalkProtocol::UserJoined { .. }
-        | TalkProtocol::UserLeft { .. }
-        | TalkProtocol::History { .. }
-        | TalkProtocol::UsernameChanged { .. }
-        | TalkProtocol::LocalError { .. }
-        | TalkProtocol::Error { .. } => {
             // These are usually sent from server to client, not received
+        _ => {
             eprintln!("Unexpected server-to-client message received");
         }
     }

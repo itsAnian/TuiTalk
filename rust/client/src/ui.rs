@@ -52,6 +52,16 @@ fn return_local_error(message: &String) -> Result<Line> {
     Ok(content)
 }
 
+fn return_local_information(message: &String) -> Result<Line> {
+    let info = Span::styled(format!("Info"), Style::default().fg(Color::Green));
+    let space = Span::raw(": ".to_string());
+
+    let message = Span::raw(message);
+
+    let content = Line::from(vec![info, space, message]);
+    Ok(content)
+}
+
 fn return_user_left(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line> {
     let timestamp = format_timestamp(unixtime)?;
     let info = Span::styled(format!("Info: "), Style::default().fg(Color::Yellow));
@@ -162,6 +172,7 @@ pub fn draw(app: &mut App, frame: &mut Frame) {
         .map(|proto| match proto {
             TalkProtocol::Error { code, message } => return_server_error(message, code),
             TalkProtocol::LocalError { message } => return_local_error(message),
+            TalkProtocol::LocalInformation { message } => return_local_information(message),
             TalkProtocol::PostMessage { message } => return_posted_message(message),
             TalkProtocol::UserJoined {
                 uuid,
