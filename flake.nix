@@ -28,8 +28,13 @@
         with pkgs; {
           devShells.default = pkgs.mkShell {
             shellHook = ''echo "Command for docs: latexmk -pdf -shell-escape -output-directory=build main.tex"'';
+            buildInputs = [
+                 (pkgs.rust-bin.stable.latest.default.override {
+              extensions = [ "rust-src" ];
+              targets = [ "wasm32-unknown-unknown" ];
+            })
+            ];
             packages = [
-              rust-bin.beta.latest.default
               cargo
               trunk
               rustfmt
