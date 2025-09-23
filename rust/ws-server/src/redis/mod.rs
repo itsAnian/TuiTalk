@@ -116,7 +116,7 @@ pub async fn subscribe_to_redis(
                         }
                     }
                 }
-                _ => println!("other"),
+                _ => eprintln!("[SERVER] Couldn't subscribe to redis"),
             }
         }
     });
