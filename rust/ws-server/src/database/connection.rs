@@ -1,6 +1,7 @@
 use diesel::prelude::*;
+use anyhow::Result;
 
-pub fn establish_connection() -> PgConnection {
+pub fn establish_connection() -> Result<PgConnection> {
     let db_host = std::env::var("POSTGRES_HOST").unwrap_or("localhost".to_string());
     let db_port = std::env::var("POSTGRES_PORT").unwrap_or("5432".to_string());
     let db_user = std::env::var("POSTGRES_USER").expect("No env POSTGRES_USER was provided");
@@ -11,8 +12,9 @@ pub fn establish_connection() -> PgConnection {
         "postgres://{}:{}@{}:{}/{}",
         db_user, db_pass, db_host, db_port, db_name
     );
-    println!("Connected to {}",database_url);
 
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    match PgConnection::establish(&database_url) {
+        Ok(conn) => Ok(conn),
+        Err(e) => Err(anyhow::anyhow!(e)),
+    }
 }
