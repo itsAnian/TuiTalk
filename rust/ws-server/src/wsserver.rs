@@ -279,7 +279,12 @@ async fn publish_message(
 ) -> Result<()> {
     let mut conn = shared_redis.lock().await;
     let msg_json = msg.serialize()?;
-    let _: () = conn.spublish(room_id, msg_json)?;
+    match conn.spublish(room_id, msg_json) {
+        Ok(()) => {}
+        Err(e) => {
+            eprintln!("[SERVER] Redis publish error: {}", e);
+        }
+    }
     Ok(())
 }
 
