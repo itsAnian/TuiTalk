@@ -25,6 +25,7 @@ pub fn get_first_message_timestamp(app: &mut app::App) -> Result<u64> {
         .find_map(|proto| match proto {
             TalkProtocol::Error { .. } => None,
             TalkProtocol::LocalError { .. } => None,
+            TalkProtocol::LocalInformation { .. } => None,
             TalkProtocol::PostMessage { message } => Some(message.unixtime),
             TalkProtocol::UserJoined { unixtime, .. } => Some(*unixtime),
             TalkProtocol::UserLeft { unixtime, .. } => Some(*unixtime),
@@ -125,6 +126,12 @@ fn parse_command(app: &mut app::App) -> Result<()> {
             .lock()
             .expect("Communication Vector")
             .clear();
+    } else if app.input == "help" {
+        let com = parse_help();
+        app.communication
+            .lock()
+            .expect("Communication Vector")
+            .push(com?);
     } else if app.input.starts_with("fetch") {
         app.input = app.input.trim_start_matches("fetch").trim().to_string();
         match app.input.parse::<i64>() {
@@ -200,5 +207,16 @@ fn parse_command_fetch_invalid(error: ParseIntError) -> Result<TalkProtocol> {
 fn parse_message_too_long() -> Result<TalkProtocol> {
     Ok(TalkProtocol::LocalError {
         message: "Input too long".to_string(),
+    })
+}
+
+fn parse_help() -> Result<TalkProtocol> {
+    Ok(TalkProtocol::LocalInformation {
+        message: "\n/help to show this command\n
+        /name {string} changes the name to the given string\n
+        /room {int} changes the room to the given number\n
+        /fetch {number} fetches the given number of messages up from the first message in your history\n
+        /clear clears the chat\n"
+            .to_string(),
     })
 }
