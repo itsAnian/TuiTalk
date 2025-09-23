@@ -7,10 +7,6 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
@@ -19,7 +15,6 @@
     self,
     nixpkgs,
     treefmt-nix,
-    fenix,
     rust-overlay,
     flake-utils,
     ...
@@ -32,6 +27,7 @@
       in
         with pkgs; {
           devShells.default = pkgs.mkShell {
+            shellHook = ''echo "Command for docs: latexmk -pdf -shell-escape -output-directory=build main.tex"'';
             packages = [
               rust-bin.beta.latest.default
               cargo
@@ -45,6 +41,40 @@
               python3
               wasm-pack
               redis
+
+            # Latex depedencies
+            (pkgs.texlive.combine {
+              inherit (pkgs.texlive)
+                scheme-small
+                latexmk
+                acronym
+                amsmath
+                babel
+                biblatex
+                bigfoot # or collection-latexextra
+                csquotes
+                enumitem
+                catchfile
+                svg
+                transparent
+                footmisc
+                geometry
+                glossaries
+                hyperref
+                listings
+                microtype
+                nag
+                pdfpages
+                pgf
+                setspace
+                todonotes
+                wrapfig
+                xstring;
+              })
+
+              pkgs.inkscape
+              pkgs.zathura
+              pkgs.biber
             ];
           };
 
