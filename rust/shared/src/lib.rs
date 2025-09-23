@@ -7,29 +7,73 @@ pub struct TalkMessage {
     pub username: String,
     pub text: String,
     pub room_id: i32,
-    pub unixtime: u64
+    pub unixtime: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum TalkProtocol {
     // Client -> Server Commands
-    JoinRoom { room_id: i32, uuid: Uuid, username: String, unixtime: u64},
-    LeaveRoom { room_id: i32, uuid: Uuid, username: String, unixtime: u64},
-    ChangeName {uuid: Uuid, username: String, old_username: String, unixtime: u64},
-    Fetch { room_id: i32, limit: i64, fetch_before: u64},
-    LocalError { message: String },
-    LocalInformation { message: String },
+    JoinRoom {
+        room_id: i32,
+        uuid: Uuid,
+        username: String,
+        unixtime: u64,
+    },
+    LeaveRoom {
+        room_id: i32,
+        uuid: Uuid,
+        username: String,
+        unixtime: u64,
+    },
+    ChangeName {
+        uuid: Uuid,
+        username: String,
+        old_username: String,
+        unixtime: u64,
+    },
+    Fetch {
+        room_id: i32,
+        limit: i64,
+        fetch_before: u64,
+    },
+    LocalError {
+        message: String,
+    },
+    LocalInformation {
+        message: String,
+    },
 
     // Server -> Client Events
-    UserJoined { uuid: Uuid, username: String, room_id: i32, unixtime: u64 },
-    UserLeft { uuid: Uuid, username: String, room_id: i32, unixtime: u64  },
-    UsernameChanged {uuid: Uuid, username: String, old_username: String, unixtime: u64},
-    History { text: Vec<TalkProtocol> },
-    Error { code: String, message: String },
-
+    UserJoined {
+        uuid: Uuid,
+        username: String,
+        room_id: i32,
+        unixtime: u64,
+    },
+    UserLeft {
+        uuid: Uuid,
+        username: String,
+        room_id: i32,
+        unixtime: u64,
+    },
+    UsernameChanged {
+        uuid: Uuid,
+        username: String,
+        old_username: String,
+        unixtime: u64,
+    },
+    History {
+        text: Vec<TalkProtocol>,
+    },
+    Error {
+        code: String,
+        message: String,
+    },
 
     // Server <-> Client
-    PostMessage { message: TalkMessage },
+    PostMessage {
+        message: TalkMessage,
+    },
 }
 
 impl TalkProtocol {
@@ -42,22 +86,55 @@ impl TalkProtocol {
     }
     pub fn to_i16(&self) -> Option<i16> {
         match self {
-            TalkProtocol::UserJoined {..} => Some(0),
-            TalkProtocol::UserLeft {..} => Some(1),
-            TalkProtocol::UsernameChanged {..} => Some(2),
+            TalkProtocol::UserJoined { .. } => Some(0),
+            TalkProtocol::UserLeft { .. } => Some(1),
+            TalkProtocol::UsernameChanged { .. } => Some(2),
             TalkProtocol::Error { .. } => Some(3),
-            TalkProtocol::PostMessage {..} => Some(4),
+            TalkProtocol::PostMessage { .. } => Some(4),
             _ => None,
         }
     }
 
-    pub fn from_i16(value: i16, room_id: i32, uuid: Uuid, username: String, unixtime: u64, message: String) -> Option<Self> {
+    pub fn from_i16(
+        value: i16,
+        room_id: i32,
+        uuid: Uuid,
+        username: String,
+        unixtime: u64,
+        message: String,
+    ) -> Option<Self> {
         Some(match value {
-            0 => TalkProtocol::UserJoined { uuid, username, room_id, unixtime },
-            1 => TalkProtocol::UserLeft { uuid, username, room_id, unixtime },
-            2 => TalkProtocol::UsernameChanged { uuid, username, old_username: message, unixtime },
-            3 => TalkProtocol::Error { code: message.clone(), message },
-            4 => TalkProtocol::PostMessage { message: TalkMessage { uuid, username, text: message, room_id, unixtime } },
+            0 => TalkProtocol::UserJoined {
+                uuid,
+                username,
+                room_id,
+                unixtime,
+            },
+            1 => TalkProtocol::UserLeft {
+                uuid,
+                username,
+                room_id,
+                unixtime,
+            },
+            2 => TalkProtocol::UsernameChanged {
+                uuid,
+                username,
+                old_username: message,
+                unixtime,
+            },
+            3 => TalkProtocol::Error {
+                code: message.clone(),
+                message,
+            },
+            4 => TalkProtocol::PostMessage {
+                message: TalkMessage {
+                    uuid,
+                    username,
+                    text: message,
+                    room_id,
+                    unixtime,
+                },
+            },
             _ => return None,
         })
     }
@@ -77,6 +154,7 @@ pub mod native {
         MaybeTlsStream, WebSocketStream, connect_async, tungstenite::Error,
         tungstenite::protocol::Message,
     };
+    use anyhow::Result as AnyhowResult;
     type WebStream = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
     pub async fn connect(
@@ -89,22 +167,13 @@ pub mod native {
     pub async fn sender_task(
         mut rx: UnboundedReceiver<TalkProtocol>,
         mut write: SplitSink<WebStream, Message>,
-    ) {
+    ) -> AnyhowResult<()> {
         while let Some(msg) = rx.next().await {
-            match bincode::serialize(&msg) {
-                Ok(bin) => {
-                    if let Err(e) = write.send(Message::Binary(bin)).await {
-                        eprintln!("WebSocket send error: {:?}", e);
-                        break;
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Serialization error: {:?}", e);
-                }
-            }
+            let serialized_message = bincode::serialize(&msg)?;
+            write.send(Message::Binary(serialized_message)).await?
         }
-
         println!("Sender task ended");
+        Ok(())
     }
 
     pub async fn receiver_task(
