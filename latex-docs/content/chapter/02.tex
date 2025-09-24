@@ -33,5 +33,40 @@ Externe Stakeholder
   \item Zuverlässigkeit: Als Nutzer und Systemadministrator möchte ich, dass Nachrichten zugestellt werden, solange Redis und mindestens ein Backend verfügbar sind, so dass Nachrichten nicht verloren gehen, auch wenn Teile des Systems ausfallen. Die Konsistenz der Daten soll durch eine Datenbank sichergestellt werden, sodass keine Nachrichten des Chatverlaufs fehlen und dieser damit eindeutig und zuverlässig ist.
   \item Skalierbarkeit: Als Entwickler und Betreuer möchte ich, dass das System horizontal skalierbar ist, damit es auch unter hoher Last performant bleibt. Es sollen mehrere Redis Caches und Backends verwendet werden.
 \end{itemize}
-\section{Systemkomponenten}
 
+\section{Systemkomponenten}
+Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \textit{Redis-Cluster}, \textit{Loadbalancer} und \textit{Datenbank}.
+
+\begin{description}[style=nextline]
+    \item [Client] Es gibt zwei verschiedene Arten von Clients: \textit{\ac{CLI}} und \textit{\ac{WASM}}. Beide Clients verbinden sich mit dem Loadbalancer, dieser leitet auf eine Backendkomponente weiter, um Nachrichten zu senden und zu empfangen.
+
+    \item [Backend] Die Backendkomponente ist ein in Rust geschriebener Websocket-Server.
+        Diese verwaltet die Nachrichten und kommuniziert über das Redis-Cluster mit den anderen Backendinstanzen.
+        Zu dem persistiert diese die Nachrichten und Informationen über den Nutzer in einer Datenbank.
+        Es werden zur Ausfallsicherheit drei Instanzen aufgesetzt.
+
+    \item [Redis-Cluster] Das Redis-Cluster ist die Kernkomponente für die Synchronisation der Nachrichten und stellt die Kommunikation unter den Backendinstanzen her.
+        Dafür wird die Publish und Subscribe Funktion von Redis genutzt.
+        Jeder Chatraum wird als Channel in Redis abgebildet.
+        Jede Nachricht des Clients wird auf den jeweiligen Channel in Redis gepublished.
+        Um eine Nachricht zu erhalten erstellt das Backend für jeden Client einen Subscriber auf dem entsprechenden Channel.
+        Das Redis-Cluster besteht aus sechs Redis-Nodes, drei davon sind Master-Nodes und die restlichen drei sind zu den Master-Nodes die jeweiligen Replicas.
+
+    \item [Loadbalancer] Der Loadbalancer ist eine Komponente, die die Verbindungen zwischen den Clients und den Backends verteilt.
+        Als Loadbalancer wird Nginx genutzt, da dieser einer der renomiertesten in dieser Technologie ist.
+        Als Strategie zur Aufteilung auf die Backendinstanzen wird nach dem Verfahren der wenigsten Verbindungen vorgegangen.
+
+    \item [Datenbank] Die Datenbank ist eine PostgreSQL-Datenbank, die die Nachrichten und Informationen der Nutzer speichert.
+        Die Backendinstanzen verbinden sich mit der Datenbank, um die Nachrichten zu laden und zu speichern.
+        Zusätzliche werden die Nutzerinformationen und in welchem Chatraum diese sich befinden gespeichert.
+        Die Datenbank ist keine Systemkritischen Komponente und sorgt im Falle eines Ausfalls nur für eine Funktionseinschränkung.
+\end{description}
+
+
+% Architekturdiagramm hier einfügen oder drüber
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/architecture.png}
+    \caption{Architekturdiagramm}
+    \label{fig:architecture}
+\end{figure}
