@@ -3,8 +3,37 @@
 \chapter{Architektur}
 
 \section{Anforderungen}
-\subsection{Funktionale Anforderungen}
-\subsection{Nichtfunktionale Anforderungen}
 
+Im Folgenden werden anhand der aufgelisteten internen und externen Stakeholder die funktionalen und nicht-funktionalen Anforderungen aufgeführt.
+
+Interne Stakeholder
+
+\begin{itemize}
+  \item Entwickler
+  \item Betreuer
+  \item Systemadministrator
+\end{itemize}
+
+
+Externe Stakeholder
+\begin{itemize}
+  \item Nutzer
+\end{itemize}
+
+\subsection{Funktionale Anforderungen}
+\begin{itemize}
+  \item Client Kommunikation: 
+    Als Nutzer und Entwickler möchte ich mich über WebSockets mit dem System verbinden können, wobei ich zwischen einem CLI- und einem WASM-Client entscheiden möchte, damit ich meine präferierte Umgebung verwenden kann. Ich möchte Nachrichten in Echtzeit senden und empfangen, sowie Räumen beitreten und verlassen können. Darüber hinaus soll es möglich sein, vergangene Nachrichten laden zu können, damit ich den gesamten Chatverlauf einsehen kann.
+  \item Loadbalancer: Als Nutzer und Systemadministrator möchte ich, dass ein Loadbalancer die WebSocket Verbindungen gleichmäßig auf die vorhandenen Backends verteilt, damit eine optimale Performance erreicht werden kann. Wenn ein Backend ausfällt, sollen die bestehenden Verbindungen nahtlos vom Loadbalancer zu anderen Backends umgeleitet werden, sodass ich beim Benutzen keine Unterbrechung bemerke.
+  \item Backend Services: Als Entwickler möchte ich, dass die Client Verbindungen vom Backend verwaltet werden und Nutzer spezifische Buffer verwendet werden, um Nachrichten effizient und zuverlässig verarbeiten zu können. Nachrichten sollen über Redis verteilt werden, damit alle Backendinstanzen synchron sind und in einer Datenbank gespeichert werden, um Chatverläufe abrufen zu können. Das System soll Redis Publish/Subscribe im Cluster unterstützen, damit es Skalierbar und Ausfallsicher ist.
+\end{itemize}
+\subsection{Nichtfunktionale Anforderungen}
+\begin{itemize}
+  \item Skalierbarkeit
+  \item Hohe Verfügbarkeit
+  \item Fehlertoleranz
+  \item Zuverlässigkeit
+\item
+\end{itemize}
 \section{Systemkomponenten}
 
