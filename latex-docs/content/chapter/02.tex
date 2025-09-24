@@ -34,11 +34,38 @@ Externe Stakeholder
   \item Skalierbarkeit: Als Entwickler und Betreuer möchte ich, dass das System horizontal skalierbar ist, damit es auch unter hoher Last performant bleibt. Es sollen mehrere Redis Caches und Backends verwendet werden.
 \end{itemize}
 
+\section{Architekturentscheidungen}
+% Warum Redis?
+% Start mit einem Container
+% Redis Cluster
+% Redis Redundancy
+% Warum PostgreSQL-Datenbank?
+% Warum Nginx? Warum diese Strategie (least connections)?
+
+\subsection{Rust}
+Als Programmiersprache wird Rust genutzt.
+Da Rust so vielseitig einsetzbar ist wird diese für die Clients als auch für das Backend verwendet.
+Dabei wird im Backend die Rust-Library \textit{tokio} genutzt, um Asynchrone Aufgaben zu verwalten.
+Im \ac{WASM}-Client wird die Rust-Library \textit{wasm-bindgen} genutzt, um WebAssembly zu nutzen.
+Im \ac{CLI}-Client wird die Rust-Library \textit{ratatui} genutzt, um die Kommandozeile als User Interface zu nutzen.
+Die Programmiersprache aus bestehender eigeninteresse in diesem Projekt verwendet.
+
+\subsection{Redis}
+\subsection{Backend}
+\subsection{Loadbalancer}
+\subsection{PostgreSQL-Datenbank}
+
+
 \section{Systemkomponenten}
 Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \textit{Redis-Cluster}, \textit{Loadbalancer} und \textit{Datenbank}.
 
 \begin{description}[style=nextline]
-    \item [Client] Es gibt zwei verschiedene Arten von Clients: \textit{\ac{CLI}} und \textit{\ac{WASM}}. Beide Clients verbinden sich mit dem Loadbalancer, dieser leitet auf eine Backendkomponente weiter, um Nachrichten zu senden und zu empfangen.
+    \item [Client] Es gibt zwei verschiedene Arten von Clients: 
+        \begin{itemize} 
+            \item \textit{\ac{CLI}} 
+            \item \textit{\ac{WASM}}
+        \end{itemize}
+        Beide Clients verbinden sich mit dem Loadbalancer, dieser leitet auf eine Backendkomponente weiter, um Nachrichten zu senden und zu empfangen.
 
     \item [Backend] Die Backendkomponente ist ein in Rust geschriebener Websocket-Server.
         Diese verwaltet die Nachrichten und kommuniziert über das Redis-Cluster mit den anderen Backendinstanzen.
