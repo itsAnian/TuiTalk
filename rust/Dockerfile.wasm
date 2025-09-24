@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1.4
+FROM rust:bookworm AS builder
+
+WORKDIR /usr/src/app
+
+RUN rustup target add wasm32-unknown-unknown
+
+# Copy source code
+COPY Cargo.toml Cargo.lock ./
+COPY ws-server ./ws-server
+COPY shared ./shared
+COPY wasm-client ./wasm-client
+COPY client ./client
+
+WORKDIR /usr/src/app/wasm-client
+
+RUN cargo build --target wasm32-unknown-unknown --release
+
+FROM nginx:alpine
+
+COPY --from=builder /usr/src/app/wasm-client/dist /usr/share/nginx/html
+
+EXPOSE 7777
+
+CMD ["nginx", "-g", "daemon off;"]
