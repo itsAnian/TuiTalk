@@ -47,17 +47,17 @@ Da Rust so vielseitig einsetzbar ist wird diese für die Clients als auch für d
 Dabei wird im Backend die Rust-Library \textit{tokio} genutzt, um Asynchrone Aufgaben zu verwalten.
 Im \ac{WASM}-Client wird die Rust-Library \textit{wasm-bindgen} genutzt, um WebAssembly zu nutzen.
 Im \ac{CLI}-Client wird die Rust-Library \textit{ratatui} genutzt, um die Kommandozeile als User Interface zu nutzen.
-Die Programmiersprache wurde aus bestehendem Eigeninteresse in diesem Projekt verwendet und da es die beliebteste Programmiersprache ist, wie in einer Umfrage von Stackoverflow herausgefunden wurde.\footnote{\glcite{stackoverflow_survey:2025}}
+Die Programmiersprache wurde aus bestehendem Eigeninteresse in diesem Projekt verwendet und da es die beliebteste Programmiersprache ist, wie in einer Umfrage von Stackoverflow herausgefunden wurde.\footnote{vgl. \glcite{stackoverflow_survey:2025}}
 
 \subsection{Redis}
 Redis ist eine in-memory Datenbank, die eine einfache und schnell zu verwendende, leistungsfähige, skalierbare und zuverlässige Datenbank ist.
-Allerdings ist der Hauptnutzen für das System in dieser Arbeit die Publish und Subscribe Funktionalität.
+Allerdings ist der Hauptnutzen für das System in dieser Arbeit die Publish und Subscribe Funktionalität.\footnote{vgl. \glcite{ibm:2024}}
 Das Setup eines Redis Containers ist sehr einfach und benötigt wenig Konfiguration, dadurch eignet sich Redis als Kommunikationsschnittstelle unter den Backendinstanzen.
 
 \subsection{Loadbalancer}
 Als Loadbalancer wird \textit{Nginx} genutzt. 
 Nginx bietet nicht nur Stabilität und bewährte Performance, sondern ermöglicht auch flexible Strategien 
-zur Lastverteilung.  
+zur Lastverteilung.\footnote{vgl. \glcite{f5:2014}}  
 In diesem Projekt wird die Strategie \textit{Least Connections} verwendet. Dabei werden neue Verbindungen 
 an den Server mit den aktuell wenigsten aktiven Verbindungen weitergeleitet.  
 Dies führt zu einer gleichmäßigeren Auslastung der Backend-Instanzen, insbesondere in Szenarien mit 
