@@ -42,50 +42,14 @@ pub async fn create_redis_connection() -> Result<ClusterConnection, redis::Redis
     Ok(publish_conn)
 }
 
-#[allow(dead_code)]
-fn extract_binary_payload_from_pmessage(data: Vec<Value>) -> Option<Vec<u8>> {
-    // PMessage data format: [pattern, channel, binary_payload]
-    if data.len() >= 3 {
-        if let Value::BulkString(binary_data) = &data[2] {
-            return Some(binary_data.clone());
-        }
-    }
-    None
-}
-
 fn extract_binary_payload_from_message(data: Vec<Value>) -> Option<Vec<u8>> {
-    // PMessage data format: [pattern, channel, binary_payload]
+    // Redis PMessage data format: [channel, binary_payload]
     if data.len() >= 2 {
         if let Value::BulkString(binary_data) = &data[1] {
             return Some(binary_data.clone());
         }
     }
     None
-}
-
-#[allow(dead_code)]
-pub async fn subscribe_to_redis_pattern(tx: TUnboundedSender<Message>) {
-    let r = create_redis_async_pubsub_connection().await;
-    let (mut con, mut rx) = r.expect("Pubusb Connection");
-
-    let _ = con.psubscribe("*").await;
-
-    // Subscribe to all channels for testing
-    while let Some(message) = rx.recv().await {
-        println!("[REDIS] type {:?}", message);
-        match message.kind {
-            redis::PushKind::PMessage => {
-                let payload: Vec<u8> = extract_binary_payload_from_pmessage(message.data).unwrap();
-                if let Ok(deserialized) = bincode::deserialize::<TalkProtocol>(&payload) {
-                    println!("[REDIS] Received  {:?}", deserialized);
-                    let _ = tx.send(Message::Binary(deserialized.serialize().unwrap().into()));
-                } else {
-                    eprintln!("Failed to deserialize message from Redis");
-                }
-            }
-            _ => println!("other"),
-        }
-    }
 }
 
 pub async fn subscribe_to_redis(
