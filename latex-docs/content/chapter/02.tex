@@ -74,6 +74,13 @@ Jede andere relationale SQL-Datenbank wie MySQL oder MariaDB hätte im Rahmen di
 \section{Systemkomponenten}
 Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \textit{Redis-Cluster}, \textit{Loadbalancer} und \textit{Datenbank}.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/architecture.png}
+    \caption{Architekturdiagramm}
+    \label{fig:architecture}
+\end{figure}
+
 \begin{description}[style=nextline]
     \item [Client] Es gibt zwei verschiedene Arten von Clients: 
         \begin{itemize} 
@@ -105,10 +112,3 @@ Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \te
 \end{description}
 
 
-% Architekturdiagramm hier einfügen oder drüber
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/architecture.png}
-    \caption{Architekturdiagramm}
-    \label{fig:architecture}
-\end{figure}
