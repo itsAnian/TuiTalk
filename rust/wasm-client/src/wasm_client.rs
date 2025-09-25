@@ -11,6 +11,7 @@ use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlElement;
 use web_sys::wasm_bindgen::JsCast;
+use web_sys::window;
 use yew::prelude::*;
 
 pub struct ChatClient {
@@ -72,7 +73,8 @@ impl Component for ChatClient {
                     return false;
                 }
 
-                let url = "ws://localhost:8079".to_string();
+                let url = format!("ws://{}:8079", window().unwrap().location().hostname().unwrap());
+
                 match WebSocket::open(&url) {
                     Ok(ws) => {
                         let (write, read) = ws.split();
