@@ -68,6 +68,7 @@ pub enum TalkProtocol {
     ChangeName {uuid: Uuid, username: String, old_username: String, unixtime: u64},
     Fetch { room_id: i32, limit: i64, fetch_before: u64},
     LocalError { message: String },
+    LocalInformation { message: String },
 
     // Server -> Client Events
     UserJoined { uuid: Uuid, username: String, room_id: i32, unixtime: u64 },
@@ -110,6 +111,7 @@ Showcase
 
 - Installation über cargo
     - `cargo install tuitalk`
+    - hinzufügen zu path / in repo gehen
     - `tuitalk ws://aicon.dhbw-heidenheim.de:8079`
 
 - Manuelle Installation
