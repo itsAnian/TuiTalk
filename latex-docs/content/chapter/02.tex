@@ -20,18 +20,23 @@ Externe Stakeholder
 \end{itemize}
 
 \subsection{Funktionale Anforderungen}
-\begin{itemize}
-  \item Client Kommunikation: 
-    Als Nutzer und Entwickler möchte ich mich über WebSockets mit dem System verbinden können, wobei ich zwischen einem CLI- und einem WASM-Client entscheiden möchte, damit ich meine präferierte Umgebung verwenden kann. Ich möchte Nachrichten in Echtzeit senden und empfangen, Räumen beitreten und verlassen, sowie meinen Anzeigenamen ändern können. Darüber hinaus soll es möglich sein, vergangene Nachrichten laden zu können, damit ich den gesamten Chatverlauf einsehen kann.
-  \item Loadbalancer: Als Nutzer und Systemadministrator möchte ich, dass ein Loadbalancer die WebSocket Verbindungen gleichmäßig auf die vorhandenen Backends verteilt, damit eine optimale Performance erreicht werden kann. Wenn ein Backend ausfällt, sollen die bestehenden Verbindungen nahtlos vom Loadbalancer zu anderen Backends umgeleitet werden, sodass ich beim Benutzen keine Unterbrechung bemerke.
-  \item Backend Services: Als Entwickler möchte ich, dass die Client Verbindungen vom Backend verwaltet werden und Nutzer spezifische Buffer verwendet werden, um Nachrichten effizient und zuverlässig verarbeiten zu können. Nachrichten sollen über ein Publish/Subscribe-System verteilt werden, damit alle Backendinstanzen synchron sind und in einer Datenbank gespeichert werden, um Chatverläufe abrufen zu können. Das System soll Pub/Sub-Mechanismen als Cluster unterstützen, damit es Skalierbar und Ausfallsicher ist.
-\end{itemize}
+\begin{description}[style=nextline]
+    \item [Client Kommunikation] 
+      Als Nutzer und Entwickler möchte ich mich über WebSockets mit dem System verbinden können, wobei ich zwischen einem \ac{CLI}- und einem \ac{Wasm}-Client entscheiden möchte, damit ich meine präferierte Umgebung verwenden kann. Ich möchte Nachrichten in Echtzeit senden und empfangen, Räumen beitreten und diese wieder verlassen, sowie meinen Anzeigenamen ändern können. Darüber hinaus soll es möglich sein, vergangene Nachrichten laden zu können, damit ich den gesamten Chatverlauf einsehen kann.
+  \item [Loadbalancer]
+      Als Nutzer und Systemadministrator möchte ich, dass ein Loadbalancer die WebSocket Verbindungen gleichmäßig auf die vorhandenen Backends verteilt, damit eine optimale Performance erreicht werden kann. Wenn ein Backend ausfällt, sollen die neuen Anfragen an den Loadbalancer zu einem der noch aktiven Backends verbunden werden.
+  \item [Backend Services]
+      Als Entwickler möchte ich, dass die Client Verbindungen vom Backend verwaltet werden und Nutzer spezifische Buffer verwendet werden, um Nachrichten effizient und zuverlässig verarbeiten zu können. Nachrichten sollen über ein Publish/Subscribe-System verteilt werden, damit alle Backendinstanzen synchron sind und in einer Datenbank gespeichert werden, um Chatverläufe abrufen zu können. Das System soll Pub/Sub-Mechanismen als Cluster unterstützen, damit es Skalierbar und Ausfallsicher ist.
+\end{description}
 \subsection{Nichtfunktionale Anforderungen}
-\begin{itemize}
-  \item Hohe Verfügbarkeit: Als Nutzer, Systemadministrator und Betreuer möchte ich, dass das System weiterhin funktioniert, auch wenn ein Backend ausfällt, ohne das der Nutzer eine Unterbrechung mitbekommt. Nach dem Ausfall eines Backends soll die Verbindung automatish von einem anderen Backend übernommen werden ohne das Nachrichten verloren gehen.
-  \item Zuverlässigkeit: Als Nutzer und Systemadministrator möchte ich, dass Nachrichten zugestellt werden, solange die Datenbank und mindestens ein Backend verfügbar sind, so dass Nachrichten nicht verloren gehen, auch wenn Teile des Systems ausfallen. Die Konsistenz der Daten soll durch eine Datenbank sichergestellt werden, sodass keine Nachrichten des Chatverlaufs fehlen und dieser damit eindeutig und zuverlässig ist.
-  \item Skalierbarkeit: Als Entwickler und Betreuer möchte ich, dass das System horizontal skalierbar ist, damit es auch unter hoher Last performant bleibt. Es sollen mehrere verteilte Pub/Sub-Instanzen und Backends verwendet werden.
-\end{itemize}
+\begin{description}[style=nextline]
+    \item [Hohe Verfügbarkeit]
+        Als Nutzer, Systemadministrator und Betreuer möchte ich, dass das System weiterhin funktioniert, auch wenn ein Backend ausfällt. Nach dem Ausfall eines Backends soll es weiterhin möglich sein sich auf ein anderes aktives Backend zu verbinden.
+    \item [Zuverlässigkeit] 
+        Als Nutzer und Systemadministrator möchte ich, dass Nachrichten zugestellt werden, solange die Datenbank und mindestens ein Backend verfügbar sind, so dass Nachrichten nicht verloren gehen, auch wenn Teile des Systems ausfallen. Die Konsistenz der Daten soll durch eine Datenbank sichergestellt werden, sodass keine Nachrichten des Chatverlaufs fehlen und dieser damit eindeutig und zuverlässig ist.
+    \item [Skalierbarkeit] 
+        Als Entwickler und Betreuer möchte ich, dass das System horizontal skalierbar ist, damit es auch unter hoher Last performant bleibt. Es sollen mehrere verteilte Pub/Sub-Instanzen und Backends verwendet werden.
+\end{description}
 
 \section{Architekturentscheidungen}
 % Warum Redis?
@@ -43,15 +48,15 @@ Externe Stakeholder
 
 \subsection{Rust}
 Als Programmiersprache wird Rust genutzt.
-Da Rust so vielseitig einsetzbar ist wird diese für die Clients als auch für das Backend verwendet.
+Da Rust vielseitig einsetzbar ist wird diese für die Clients als auch für das Backend verwendet.
 Dabei wird im Backend die Rust-Library \textit{tokio} genutzt, um Asynchrone Aufgaben zu verwalten.
-Im \ac{WASM}-Client wird die Rust-Library \textit{wasm-bindgen} genutzt, um WebAssembly zu nutzen.
+Im \ac{Wasm}-Client wird die Rust-Library \textit{wasm-bindgen} genutzt, um diesen in WebAssembly programmieren zu können.
 Im \ac{CLI}-Client wird die Rust-Library \textit{ratatui} genutzt, um die Kommandozeile als User Interface zu nutzen.
 Die Programmiersprache wurde aus bestehendem Eigeninteresse in diesem Projekt verwendet und da es die beliebteste Programmiersprache ist, wie in einer Umfrage von Stackoverflow herausgefunden wurde.\footnote{vgl. \glcite{stackoverflow_survey:2025}}
 
 \subsection{Redis}
-Redis ist eine in-memory Datenbank, die eine einfache und schnell zu verwendende, leistungsfähige, skalierbare und zuverlässige Datenbank ist.
-Allerdings ist der Hauptnutzen für das System in dieser Arbeit die Publish und Subscribe Funktionalität.\footnote{vgl. \glcite{ibm:2024}}
+Redis ist eine in-memory Datenbank, die einfach, schnell zu verwenden, leistungsfähig, skalierbar und zuverlässig ist.\footnote{vgl. \glcite{ibm:2024}}
+Allerdings ist der Hauptnutzen für das System in dieser Arbeit die Publish und Subscribe Funktionalität.
 Das Setup eines Redis Containers ist sehr einfach und benötigt wenig Konfiguration, dadurch eignet sich Redis als Kommunikationsschnittstelle unter den Backendinstanzen.
 
 \subsection{Loadbalancer}
@@ -61,18 +66,17 @@ zur Lastverteilung.\footnote{vgl. \glcite{f5:2014}}
 In diesem Projekt wird die Strategie \textit{Least Connections} verwendet. Dabei werden neue Verbindungen 
 an den Server mit den aktuell wenigsten aktiven Verbindungen weitergeleitet.  
 Dies führt zu einer gleichmäßigeren Auslastung der Backend-Instanzen, insbesondere in Szenarien mit 
-langen Verbindungen, wie sie bei WebSocket-Kommunikation üblich sind.
+langen Verbindungen, wie sie bei \ac{WS}-Kommunikation üblich sind.
 
 \subsection{PostgreSQL-Datenbank}
 Für die persistente Datenspeicherung wird eine \textit{PostgreSQL}-Datenbank eingesetzt.  
-PostgreSQL wurde gewählt, da sie ein stabiles, weit verbreitetes und leistungsfähiges relationales Datenbanksystem ist. 
-Die Datenbank PostgreSQL wurde auch ausgewählt, da die Entwickler dieses Projekts bereits mit PostgreSQL gearbeitet haben.
+PostgreSQL wurde gewählt, da es ein stabiles, weit verbreitetes und leistungsfähiges relationales Datenbanksystem ist und da die Entwickler dieses Projekts bereits mit PostgreSQL gearbeitet haben.
 Die Trennung zwischen Redis (für flüchtige, schnelle Daten) und PostgreSQL (für persistente Daten) 
 ermöglicht eine klare Architektur, bei der beide Systeme ihre jeweiligen Stärken optimal ausspielen können.
 Jede andere relationale SQL-Datenbank wie MySQL oder MariaDB hätte im Rahmen dieses Projekts auch ausgereicht.
 
 \section{Systemkomponenten}
-Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \textit{Redis-Cluster}, \textit{Loadbalancer} und \textit{Datenbank}.
+Das System besteht aus sechs Komponenten: \textit{\ac{Wasm}-Client}, \textit{\ac{CLI}-Client}, \textit{Backend}, \textit{Redis-Cluster}, \textit{Loadbalancer} und \textit{Datenbank}.
 
 \begin{figure}[H]
     \centering
@@ -82,10 +86,10 @@ Das System besteht aus fünf Komponenten: \textit{Client}, \textit{Backend}, \te
 \end{figure}
 
 \begin{description}[style=nextline]
-    \item [Client] Es gibt zwei verschiedene Arten von Clients: 
+    \item [Clients] Es gibt zwei verschiedene Arten von Clients: 
         \begin{itemize} 
             \item \textit{\ac{CLI}} 
-            \item \textit{\ac{WASM}}
+            \item \textit{\ac{Wasm}}
         \end{itemize}
         Beide Clients verbinden sich mit dem Loadbalancer, dieser leitet auf eine Backendkomponente weiter, um Nachrichten zu senden und zu empfangen.
 

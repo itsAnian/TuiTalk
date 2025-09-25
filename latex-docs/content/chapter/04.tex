@@ -7,8 +7,7 @@ Zu beginn des Entwicklungsprozess wurde nur ein Backend verwendet was die Kommun
 Allerdings hat sich hieraus das Problem der Sychronisation der Nachrichten ergeben.
 Dafür wurde ein Redis-Cluster aufgesetzt, welcher die Kommunikation zwischen den Backendinstanzen ermöglicht.
 Hierbei wurde initial ein Redis-Cluster mit drei Nodes aufgesetzt.
-Da das Cluster bei den Ausfall einer Node abgestürzt ist musste auch hier für Redundanz gesorgt werden.
-Deshalb ist als Folgemaßnahme ein erweitertes Redis-Cluster in Betrieb genommen worden.
+Da das Cluster bei den Ausfall einer Node abgestürzt ist musste für Redundanz gesorgt werden, weshalb als Folgemaßnahme ein erweitertes Redis-Cluster in Betrieb genommen wurde.
 Dieses neue Cluster besitzt sechs Nodes, drei davon sind Master-Nodes und die restlichen drei sind zu den Master-Nodes die jeweiligen Replicas.
 
 \subsection{Alternative Lösungen}
