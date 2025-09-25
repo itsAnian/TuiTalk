@@ -5,6 +5,8 @@ use futures_channel::mpsc::UnboundedSender;
 use ratatui::DefaultTerminal;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use shared::*;
+use std::fs;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use uuid::Uuid;
@@ -36,6 +38,7 @@ impl App {
         transmit: UnboundedSender<TalkProtocol>,
         com: Arc<Mutex<Vec<TalkProtocol>>>,
     ) -> Self {
+        let uuid = Self::load_or_create_uuid().unwrap_or_else(|_| Uuid::new_v4());
         Self {
             input: String::new(),
             input_mode: InputMode::Normal,
@@ -47,8 +50,29 @@ impl App {
             tx: transmit,
             username: "Client".to_string(),
             room: 0,
-            uuid: Uuid::new_v4(),
+            uuid,
         }
+    }
+    fn load_or_create_uuid() -> Result<Uuid, Box<dyn std::error::Error>> {
+        let config_dir = dirs::config_dir()
+            .ok_or("Cannot find config directory")?
+            .join("TuiTalk");
+
+        fs::create_dir_all(&config_dir)?;
+
+        let config_file = config_dir.join("uuid.cfg");
+
+        if config_file.exists() {
+            let content = fs::read_to_string(&config_file)?;
+            if let Ok(uuid) = Uuid::parse_str(&content.trim()) {
+                return Ok(uuid);
+            }
+        }
+
+        let new_uuid = Uuid::new_v4();
+        fs::write(&config_file, new_uuid.to_string())?;
+
+        Ok(new_uuid)
     }
 
     fn move_cursor_left(&mut self) {
@@ -141,7 +165,9 @@ impl App {
                                 }
                             }
                             KeyCode::Char('K') => {
-                                if self.max_scroll >= FAST_SCROLL && self.scroll < self.max_scroll - FAST_SCROLL {
+                                if self.max_scroll >= FAST_SCROLL
+                                    && self.scroll < self.max_scroll - FAST_SCROLL
+                                {
                                     self.scroll += FAST_SCROLL;
                                 } else {
                                     self.scroll = self.max_scroll;
