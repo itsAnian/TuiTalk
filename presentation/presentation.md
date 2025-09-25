@@ -28,7 +28,6 @@ Zielsetzung
 - Ereichbarkeit über das Terminal und den Browser
 - Kommunikation über WebSockets
 - Speichern der Nachrichten in einer Datenbank
-- Speichern der Clients in Redis Cache
 
 
 
@@ -86,6 +85,8 @@ pub enum TalkProtocol {
 
 Implementierung - Funktionen des Clients
 ===
+
+Senden und Empfangen von Nachrichten
 | Befehl | Beschreibung |
 | --- | --- |
 | **/help** | Zeigt Informationen zu den verfügbaren Befehlen |
@@ -124,10 +125,11 @@ Weiterentwicklung
 ===
 - Wasm löschen
 - WebSocket austauschen durch WebSocket Secure
-- Timestamp Änderung, sodass diese vom Server hinzugefügt wird
+- Hinzufügen des Timestamp durch Server 
 - Tui-Client erweitern
-    - Namen der Teilnehmer anzeigen
+    - Namen der Teilnehmer pro Raum anzeigen
     - Scrollen bei der Nachrichteneingabe
+    - Automatisches Nachrichtenfetching
     - /whisper Funktion
 - (Peer-to-Peer?)
 
@@ -137,14 +139,15 @@ Reflexion
 ===
 - Rust war inital sehr aufwendig zu lernen
 - Wasm Client Entwicklung wurde begonnen
-    - kläglich gescheitert
+    - große Startschwierigkeiten
     - Negative Einstellung gegenüber Wasm -> Vernachlässigung
     - konnte nicht sein volles Potential eintfalten
+- Redis kann mehr als Cache?!
 
 
 
 Fazit
 ===
 - Rust trotz hohem initalem Aufwand gut zu verwenden
-- Funktionierende Chat-Plattform mit unterschiedlichen Clients
+- Funktionierende Chat-Plattform mit unterschiedlichen Clients implementiert
 - Das Projekt wird auf für uns wichtiges reduziert und weiterentwickelt
