@@ -1,20 +1,15 @@
-\chapter{Reflexion}
-\section{Rust}
-Da vor diesem Projekt fast keine Vorkenntnisse zur Programmierung in Rust bestanden, war der Einstieg für dieses Projekt sehr aufwendig. Aufgrund dieser Einstiegshürde befinden sich in diesem Projekt Altlasten, welche in Zukunft für die weiterarbeit an diesem Projekt überarbeitet werden müssen, allerdings den Rahmen dieses Projekts gesprengt hätten.
+\chapter{Schwierigkeiten und alternative Lösungen}
 
-\section{Talkprotokoll}
-Initial war das Talkprotokoll auf einen Nachrichtentyp begrenzt, welcher folgendermaßen aussah:
+% Redis cluster
+\section{Synchronisation der Nachrichten}
+\subsection{Schwierigkeiten}
+Zu beginn des Entwicklungsprozess wurde nur ein Backend verwendet was die Kommunikation zwischen den Clients und dem Backend vereinfachte.
+Allerdings hat sich hieraus das Problem der Sychronisation der Nachrichten ergeben.
+Dafür wurde ein Redis-Cluster aufgesetzt, welcher die Kommunikation zwischen den Backendinstanzen ermöglicht.
+Hierbei wurde initial ein Redis-Cluster mit drei Nodes aufgesetzt.
+Da das Cluster bei den Ausfall einer Node abgestürzt ist musste auch hier für Redundanz gesorgt werden.
+Deshalb ist als Folgemaßnahme ein erweitertes Redis-Cluster in Betrieb genommen worden.
+Dieses neue Cluster besitzt sechs Nodes, drei davon sind Master-Nodes und die restlichen drei sind zu den Master-Nodes die jeweiligen Replicas.
 
-\begin{lstlisting}[caption=Altes Kommunikationsprotokoll, label=Altes_Kommunikationsprotokoll, basicstyle=\ttfamily\scriptsize]
-pub struct TalkMessage {
-    pub uuid: Uuid,
-    pub username: String,
-    pub text: String,
-    pub room_id: i32,
-    pub unixtime: u64
-}
-\end{lstlisting}
-Dieses wurde für unter anderem für die Anzeige von Errors und Informationen wie Namensänderungen genutzt durch setzen des Namens zu Error oder Info und ähnlichem. Durch die Überarbeitung des Protokolls wurde es einfacher weitere Nachrichtentypen zu implementieren, wie zum Beispiel die Implementierung des Fetch Befehls.
-
-\section{Wasm-Client}
-Aufgrund der bereits genannten Einstiegshürde und da zu Beginn des Projekts mit dem Wasm-Client begonnen wurde und es initial nicht so funktioniert hat wie erwartet, hat sich diese Einstellung generell auf WebAssembly übertragen. Dies hat zu einer großen Bevorzugung des Tui-Client geführt, weshalb der Wasm-Client vernachlässigt wurde und nicht sein volles Potenzial entfalten konnte.
+\subsection{Alternative Lösungen}
+Cassandra?
