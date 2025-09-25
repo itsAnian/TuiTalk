@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
     });
 
     tokio::select! {
-        _ = server_handle => println!("Server stopped"),
+        _ = server_handle => println!("[SERVER] Server stopped"),
     }
 
     Ok(())

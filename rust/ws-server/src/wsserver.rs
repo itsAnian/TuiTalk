@@ -28,10 +28,10 @@ pub async fn handle_connection(
     shared_redis: SharedRedis,
     pg_conn: SharedPostgres,
 ) -> Result<()> {
-    println!("Incoming TCP connection from: {}", addr);
+    println!("[SERVER] Incoming TCP connection from: {}", addr);
 
     let ws_stream = tokio_tungstenite::accept_async(raw_stream).await?;
-    println!("WebSocket connection established: {}", addr);
+    println!("[SERVER] WebSocket connection established: {}", addr);
 
     let (tx, mut rx) = unbounded_channel();
     let (room_tx, room_rx) = unbounded_channel::<(i32, oneshot::Sender<()>)>();
@@ -189,8 +189,9 @@ async fn handle_message(
                 publish_message(shared_redis, &response, &room_id).await?;
             }
         }
+
         // Server -> Client events typically don't need handling here
-            // These are usually sent from server to client, not received
+        // These are usually sent from server to client, not received
         _ => {
             eprintln!("Unexpected server-to-client message received");
         }
@@ -296,7 +297,7 @@ pub async fn start_ws_server() -> Result<()> {
     let try_socket = TcpListener::bind(&addr).await;
     let listener = try_socket.expect("Failed to bind");
 
-    println!("Listening on: {}", addr);
+    println!("[SERVER] Listening on: {}", addr);
 
     let redis_con = create_redis_connection()
         .await
@@ -306,17 +307,13 @@ pub async fn start_ws_server() -> Result<()> {
 
     let pg_conn = Arc::new(TMutex::new(establish_connection()?));
 
-    println!("Connected to database");
+    println!("[SERVER] Connected to database");
 
     while let Ok((stream, addr)) = listener.accept().await {
         let rd_clone = Arc::clone(&shared_con);
         let pg_clone = Arc::clone(&pg_conn);
-        tokio::spawn(handle_connection(stream, addr, rd_clone, pg_clone));
 
-        let metrics = Handle::current().metrics();
-
-        let n = metrics.num_alive_tasks();
-        println!("Server has {} active connections", n);
+        tokio::spawn(handle_connection(stream, addr, rd_clone, pg_clone)); // spawn task for each incoming connection
     }
 
     Ok(())
