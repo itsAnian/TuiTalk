@@ -72,7 +72,7 @@ impl Component for ChatClient {
                     return false;
                 }
 
-                let url = "ws://localhost:8080".to_string();
+                let url = "ws://localhost:8079".to_string();
                 match WebSocket::open(&url) {
                     Ok(ws) => {
                         let (write, read) = ws.split();
