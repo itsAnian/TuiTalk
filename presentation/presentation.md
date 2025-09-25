@@ -100,6 +100,32 @@ Senden und Empfangen von Nachrichten
 | **/fetch {Integer}** | Holt, ausgehend von der ersten Nachricht im Chatverlauf, die vorherigen Nachrichten |
 
 
+Implementierung - Backend
+===
+
+--> Probleme
+- Synchronisation zwischen mehreren Backendinstanzen
+- Raumwechsel durch Future Channel pro Thread / Client
+
+Implementierung - Backend
+===
+
+--> Lösung
+- Redis Publish / Subscribe
+- Rust Channels (Future, Oneshot)
+
+```rust
+// room change with command: /room {Id}
+async fn handle_join(
+    room_id: &i32,
+    room_tx: &UnboundedSender<(i32, oneshot::Sender<()>)>,
+) -> Result<()> {
+    let (ack_tx, ack_rx) = oneshot::channel(); // create temporary channel for acknowledgement
+    room_tx.send((*room_id, ack_tx))?; // send room change
+    ack_rx.await?; // wait for acknowledgement
+    Ok(())
+}
+```
 
 Showcase
 ===
