@@ -15,12 +15,12 @@ Alternativ kann ein Eventbasiertets System verwendet werden.
 Dafür kann Kafka als Messaging Queue verwendet werden.
 Die Nachrichten werden dann als Event in die Kafka Queue hinzugefügt.
 Die Backendinstanzen lesen die Nachrichten aus der Queue und verarbeiten diese.
-Damit die Nachrichten persistiert werden könnte weiterhin eine PostgreSQL-Datenbank verwendet werden.
+Damit die Nachrichten persistiert werden, könnte weiterhin eine PostgreSQL-Datenbank verwendet werden.
 
 
 \section{Datenbank}
 
 \subsection{Alternative Lösungen}
 Die Datenbank ist in diesem System ein Single Point of Failure, das System kann während des laufenden Betriebes mit einem Ausfall umgehen.
-Auf einen längeren Zeitraum ist die Ausfallsicherheit jedoch nicht gegeben, dafür müsste eine verteilte Datenbank verwednet werden. 
+Auf einen längeren Zeitraum ist die Ausfallsicherheit jedoch nicht gegeben, dafür müsste eine verteilte Datenbank verwendet werden. 
 Hierfür wäre eine Cassandra Datenbank geeignet.
