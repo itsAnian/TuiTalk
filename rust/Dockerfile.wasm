@@ -3,23 +3,23 @@ FROM rust:bookworm AS builder
 
 WORKDIR /usr/src/app
 
-RUN rustup target add wasm32-unknown-unknown
+RUN rustup target add wasm32-unknown-unknown \
+    && cargo install trunk
 
-# Copy source code
 COPY Cargo.toml Cargo.lock ./
-COPY ws-server ./ws-server
 COPY shared ./shared
 COPY wasm-client ./wasm-client
 COPY client ./client
+COPY ws-server ./ws-server
 
 WORKDIR /usr/src/app/wasm-client
 
-RUN cargo build --target wasm32-unknown-unknown --release
+RUN trunk build --release
 
 FROM nginx:alpine
 
 COPY --from=builder /usr/src/app/wasm-client/dist /usr/share/nginx/html
 
-EXPOSE 7777
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

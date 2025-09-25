@@ -22,7 +22,9 @@ services:
 
   tuitalk_backend_0:
     container_name: backend_0
-    build: rust
+    build:
+      context: rust
+      dockerfile: Dockerfile
     environment:
       - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379
       - POSTGRES_USER=${POSTGRES_USER}
@@ -51,7 +53,9 @@ services:
 
   tuitalk_backend_1:
     container_name: backend_1
-    build: rust
+    build:
+      context: rust
+      dockerfile: Dockerfile
     environment:
       - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379,redis-4:6379,redis-5:6379,redis-6:6379
       - POSTGRES_USER=${POSTGRES_USER}
@@ -80,7 +84,9 @@ services:
 
   tuitalk_backend_2:
     container_name: backend_2
-    build: rust
+    build:
+      context: rust
+      dockerfile: Dockerfile
     environment:
       - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379,redis-4:6379,redis-5:6379,redis-6:6379
       - POSTGRES_USER=${POSTGRES_USER}
@@ -106,6 +112,18 @@ services:
         condition: service_started
       redis-node-6:
         condition: service_started
+
+  tuitalk_wasm:
+    build:
+      context: rust
+      dockerfile: Dockerfile.wasm
+    container_name: tuitalk-wasm
+    ports:
+      - "7777:80"
+    depends_on:
+      - loadbalancer
+    networks:
+      - loadbalancing
 
   loadbalancer:
     build: loadbalancer
