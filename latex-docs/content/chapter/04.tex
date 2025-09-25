@@ -12,4 +12,16 @@ Deshalb ist als Folgemaßnahme ein erweitertes Redis-Cluster in Betrieb genommen
 Dieses neue Cluster besitzt sechs Nodes, drei davon sind Master-Nodes und die restlichen drei sind zu den Master-Nodes die jeweiligen Replicas.
 
 \subsection{Alternative Lösungen}
-Cassandra?
+Alternativ kann ein Eventbasiertets System verwendet werden.
+Dafür kann Kafka als Messaging Queue verwendet werden.
+Die Nachrichten werden dann als Event in die Kafka Queue hinzugefügt.
+Die Backendinstanzen lesen die Nachrichten aus der Queue und verarbeiten diese.
+Damit die Nachrichten persistiert werden könnte weiterhin eine PostgreSQL-Datenbank verwendet werden.
+
+
+\section{Datenbank}
+
+\subsection{Alternative Lösungen}
+Die Datenbank ist in diesem System ein Single Point of Failure, das System kann während des laufenden Betriebes mit einem Ausfall umgehen.
+Auf einen längeren Zeitraum ist die Ausfallsicherheit jedoch nicht gegeben, dafür müsste eine verteilte Datenbank verwednet werden. 
+Hierfür wäre eine Cassandra Datenbank geeignet.
