@@ -1,6 +1,6 @@
 %!TEX root = ../../main.tex
 
-\chapter{Umsetzung}
+\chapter{Implementierung}
 Für die Kommunikation zwischen den Clients und dem Backend wurde ein einheitliches Protokoll definiert. Dieses beinhaltet Nachrichten, welche von den Clients zum Backend kommen, Nachrichten welche vom Backend zurück an die Clients gehen und Nachrichten, welche in beide Richtungen geschickt werden. Durch dieses Protokoll ist die Erweiterung für andere Nachrichtentypen ohne großen Aufwand möglich.
 
 \begin{lstlisting}[caption=Kommunikationsprotokoll, label=Kommunikationsprotokoll, basicstyle=\ttfamily\scriptsize]
@@ -55,3 +55,30 @@ Beide Clients bieten neben den Grundfunktionen wie Senden und Empfangen von Nach
 \end{table}
 
 \section{Backend}
+\subsection{Umgang mit Publish und Subscribe von Redis}
+Alle Nachrichten die von Clients an einer Backendinstanz ankommen werden auf Redis gepublshed.
+Das ist nötig für die Kommunikation zwischen den Clients die kommunizieren möchten und auf verschiedenen Backendinstanzen verbunden sind.
+Jede Backendinstanz erstellt pro Client einen Thread, um auf den jeweilig ausgewählten Chatraum zu subscriben.
+Zudem kommt ein Future Channel welcher auf eine Raum änderung hört, sodass bei einem Raum wechsel der Thread nicht neu erstellt werden muss.
+Dadurch kann ein Raumwechsel über einen Future Channel erfolgen, daraufhin wird im Thread kontinuierlich überprüft ob eine Änderung des Raumes stattgefunden hat.
+Zu dem wird nicht nur die Raum ID (=Redischannel) selbst übertragen, sondern auch ein Oneshot Channel, welcher dazu dient zu zu warten bis der Raumwechsel erfolgt ist und daraufhin eine Acknowledge-Nachricht sendet.
+Neue Nachrichten werden nur dann gepublished werden, wenn der Raumwechsel abgeschlossen ist.
+Zudem werden Nachrichten aus dem alten Channel wie z. B. die eigene automatische Leave-Nachricht nicht mehr erhalten.
+Die Connection zu Redis selbst ist beim Publish synchron und beim Subscriben asynchron, beide Connections sind Clusterconnection und sind somit mit mehreren Redis-Nodes verbunden.
+
+\section{Datenbank}
+Jede Backendinstanz verbindet sich mit der Datenbank, um die Nachrichten zu laden und zu speichern.
+Falls während des Betriebes die Datenbank heruntergefahren wird, laufen die Instanzen mit eingeschränkter Funktionalität weiter.
+Das heißt im konkreten Fall das keine Nachrichten persistiert werden und demnach von der Clientseite diese auch nicht mehr angefordert werden könnnen.
+Falls die Datenbank beim intialen Start nicht verfügbar ist starten die Backendinstanzen jedoch nicht.
+
+\section{Synchronisation der Nachrichten}
+\subsection{Schwierigkeiten}
+% Redis cluster
+Zu beginn des Entwicklungsprozess wurde nur ein Backend verwendet was die Kommunikation zwischen den Clients und dem Backend vereinfachte.
+Allerdings hat sich hieraus das Problem der Sychronisation der Nachrichten ergeben.
+Dafür wurde ein Redis-Cluster aufgesetzt, welcher die Kommunikation zwischen den Backendinstanzen ermöglicht.
+Hierbei wurde initial ein Redis-Cluster mit drei Nodes aufgesetzt.
+Da das Cluster bei den Ausfall einer Node abgestürzt ist musste auch hier für Redundanz gesorgt werden.
+Deshalb ist als Folgemaßnahme ein erweitertes Redis-Cluster in Betrieb genommen worden.
+Dieses neue Cluster besitzt sechs Nodes, drei davon sind Master-Nodes und die restlichen drei sind zu den Master-Nodes die jeweiligen Replicas.
