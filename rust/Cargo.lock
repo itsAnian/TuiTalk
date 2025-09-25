@@ -164,25 +164,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "client"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "chrono",
- "color-eyre",
- "crossterm 0.29.0",
- "futures-channel",
- "futures-util",
- "ratatui",
- "serde",
- "shared",
- "tokio",
- "tokio-tungstenite 0.27.0",
- "uuid",
-]
-
-[[package]]
 name = "color-eyre"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1749,24 +1730,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "console_log",
- "futures-channel",
- "futures-util",
- "gloo-net 0.2.6",
- "gloo-utils",
- "log",
- "serde",
- "tokio",
- "tokio-tungstenite 0.20.1",
- "uuid",
- "yew",
-]
-
-[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2099,6 +2062,63 @@ dependencies = [
 ]
 
 [[package]]
+name = "tuitalk"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "chrono",
+ "color-eyre",
+ "crossterm 0.29.0",
+ "futures-channel",
+ "futures-util",
+ "ratatui",
+ "serde",
+ "tokio",
+ "tokio-tungstenite 0.27.0",
+ "tuitalk-shared 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uuid",
+]
+
+[[package]]
+name = "tuitalk-shared"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "console_log",
+ "futures-channel",
+ "futures-util",
+ "gloo-net 0.2.6",
+ "gloo-utils",
+ "log",
+ "serde",
+ "tokio",
+ "tokio-tungstenite 0.20.1",
+ "uuid",
+ "yew",
+]
+
+[[package]]
+name = "tuitalk-shared"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64f96b545b7d73703fc398bc6a77de82ba4d3bc48eb9775dbb00261a75d56df9"
+dependencies = [
+ "bincode",
+ "console_log",
+ "futures-channel",
+ "futures-util",
+ "gloo-net 0.2.6",
+ "gloo-utils",
+ "log",
+ "serde",
+ "tokio",
+ "tokio-tungstenite 0.20.1",
+ "uuid",
+ "yew",
+]
+
+[[package]]
 name = "tungstenite"
 version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2329,8 +2349,8 @@ dependencies = [
  "instant",
  "log",
  "serde",
- "shared",
  "thiserror 1.0.69",
+ "tuitalk-shared 0.1.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-logger",
@@ -2549,9 +2569,9 @@ dependencies = [
  "openssl-sys",
  "pq-sys",
  "redis",
- "shared",
  "tokio",
  "tokio-tungstenite 0.27.0",
+ "tuitalk-shared 0.1.0",
  "uuid",
 ]
 

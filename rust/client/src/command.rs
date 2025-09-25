@@ -1,5 +1,6 @@
 use crate::app;
 use anyhow::{Context, Result};
+use tuitalk_shared as shared;
 use shared::*;
 use std::{
     num::ParseIntError,

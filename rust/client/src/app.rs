@@ -4,6 +4,7 @@ use color_eyre::Result;
 use futures_channel::mpsc::UnboundedSender;
 use ratatui::DefaultTerminal;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use tuitalk_shared as shared;
 use shared::*;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};

@@ -4,6 +4,7 @@ mod ui;
 
 use crate::app::App;
 use futures_channel::mpsc::unbounded;
+use tuitalk_shared as shared;
 use shared::TalkProtocol;
 pub use shared::native::{connect, receiver_task, sender_task};
 use std::sync::{Arc, Mutex};

@@ -1,7 +1,11 @@
 [package]
-name = "shared"
+name = "tuitalk-shared"
 version = "0.1.0"
 edition = "2024"
+homepage = "https://github.com/itsanian/tuitalk"
+repository = "https://github.com/itsanian/tuitalk"
+description = "Shared code / Library for the chatapp tuitalk"
+license = "MIT OR Apache-2.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

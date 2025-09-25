@@ -8,7 +8,7 @@ yew = { version = "0.20", features = ["csr"] }
 gloo-net = { version = "0.2", features = ["websocket"] }  # WebSocket implementation
 bincode = "1.3"
 serde = { version = "1", features = ["derive"] }
-shared = {path = "../shared"}
+tuitalk-shared = {path = "../shared"}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 log = "0.4"

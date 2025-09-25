@@ -8,6 +8,7 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{Block, Paragraph, Wrap},
 };
+use tuitalk_shared as shared;
 use shared::*;
 use uuid::Uuid;
 
