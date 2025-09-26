@@ -12,7 +12,7 @@ theme:
 
 Gliederung
 ===
-1. Zielsetung
+1. Zielsetzung
 2. Architektur
 3. Implementierung
 4. Showcase
@@ -138,7 +138,7 @@ Showcase
 
 - Installation über cargo
     - `cargo install tuitalk`
-    - hinzufügen zu path / in repo gehen
+    - hinzufügen zu path / in folder gehen
     - `tuitalk ws://aicon.dhbw-heidenheim.de:8079`
 
 - Manuelle Installation
