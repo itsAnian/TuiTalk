@@ -38,7 +38,6 @@
 	\begin{tabbing}
 		mmmmmmmmmmmmmmmmmmmmmmmmmm             \= \kill
 		\textbf{\documentPeriodPhrase}       \>  \documentPeriod\\
-		\textbf{\matriculationNumberPhrase, \coursePhrase}  \>  \matriculationNumber, \course\\
 
 		% no company for the semester paper and special documents
 		\ifDocType{T2\_3100}{}{%
@@ -46,7 +45,6 @@
 				\textbf{\companyPhrase}                  \>  \companyName, \companyLocation\\
 			}%
 		}%
-		\textbf{\tutorPhrase}               \>  \tutor\\
 
 		% evaluator only for bachelor thesis
 		\ifDocType{T2\_3300}{%
