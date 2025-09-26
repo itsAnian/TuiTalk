@@ -8,6 +8,16 @@ POSTGRES_DB=database
 POSTGRES_PORT=5432
 POSTGRES_HOST=postgresdb
 ```
+
+### Knowen Issue
+If the Dockerfile does not build correctly, it might be because of the following lines:
+```dockerfile
+RUN apt-get update && \
+    apt-get install -y openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+```
+As a fix you can remove these lines.
+
 ### use Tui-Client
 After that you can start the Tui client with entering the rust folder and execute
 ```bash 
