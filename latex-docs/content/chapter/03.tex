@@ -55,7 +55,6 @@ Beide Clients bieten neben den Grundfunktionen wie Senden und Empfangen von Nach
 \end{table}
 
 \section{Backend}
-\subsection{Umgang mit Publish und Subscribe von Redis}
 Alle Nachrichten die von Clients an einer Backendinstanz ankommen werden auf Redis gepublished.
 Das ist nötig für die Kommunikation zwischen den Clients die sich auf verschiedenen Backendinstanzen befinden.
 Jede Backendinstanz erstellt pro Client einen Thread, um auf den jeweilig ausgewählten Chatraum zu subscriben.
