@@ -60,13 +60,12 @@ Alle Nachrichten die von Clients an einer Backendinstanz ankommen werden auf Red
 Das ist nötig für die Kommunikation zwischen den Clients die sich auf verschiedenen Backendinstanzen befinden.
 Jede Backendinstanz erstellt pro Client einen Thread, um auf den jeweilig ausgewählten Chatraum zu subscriben.
 Zudem kommt ein Future Channel welcher auf eine Raumänderung hört, sodass bei einem Raum wechsel der Thread nicht neu erstellt werden muss.
-Dadurch kann ein Raumwechsel über einen Future Channel erfolgen. Daraufhin wird im Thread kontinuierlich überprüft ob eine Änderung des Raumes stattgefunden hat.
+Dadurch kann ein Raumwechsel über einen Future Channel erfolgen. Im Thread wird kontinuierlich überprüft ob eine Änderung des Raumes stattgefunden hat.
 Zudem wird nicht nur die Raum ID (=Redischannel) selbst übertragen, sondern auch ein Oneshot Channel, welcher dazu dient zu zu warten bis der Raumwechsel erfolgt ist und daraufhin eine Acknowledge-Nachricht sendet.
-Neue Nachrichten werden nur dann gepublished, wenn der Raumwechsel abgeschlossen ist.
-Zudem werden Nachrichten aus dem alten Channel wie z. B. die eigene automatische Leave-Nachricht nicht mehr erhalten.
+Damit neue Nachrichten nur dann gepublished werden, wenn der Raumwechsel abgeschlossen ist.
+Zudem werden Nachrichten aus dem alten Channel wie z. B. die eigene automatische Leave-Nachricht nicht mehr erhalten, wenn auf das Acknowledgement gewartet wird.
 Die Connection zu Redis selbst ist beim Publish synchron und beim Subscriben asynchron, beide Connections sind Clusterconnections und sind somit mit mehreren Redis-Nodes verbunden.
 
-\section{Datenbank}
 Jede Backendinstanz verbindet sich mit der Datenbank, um die Nachrichten zu laden und zu speichern.
 Falls während des Betriebes die Datenbank heruntergefahren wird, laufen die Instanzen mit eingeschränkter Funktionalität weiter.
 Das heißt im konkreten Fall das keine Nachrichten persistiert werden und demnach von der Clientseite diese auch nicht mehr angefordert werden könnnen.
