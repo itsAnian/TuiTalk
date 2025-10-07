@@ -8,7 +8,7 @@ use anyhow::Result;
 use diesel::PgConnection;
 use futures_util::{SinkExt, StreamExt, stream::TryStreamExt};
 use redis::Commands;
-use shared::{TalkMessage, TalkProtocol};
+use tuitalk_shared::{TalkMessage, TalkProtocol};
 use std::{env, net::SocketAddr, sync::Arc};
 use tokio::sync::Mutex as TMutex;
 use tokio::sync::mpsc::UnboundedSender;

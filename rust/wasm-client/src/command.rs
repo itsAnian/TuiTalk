@@ -1,7 +1,7 @@
 use crate::wasm_client::ChatClient;
 use anyhow::Result;
 use js_sys::Date;
-use shared::{TalkMessage, TalkProtocol};
+use tuitalk_shared::{TalkMessage, TalkProtocol};
 use uuid::Uuid;
 use web_sys::js_sys;
 

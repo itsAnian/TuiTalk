@@ -8,7 +8,7 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{Block, Paragraph, Wrap},
 };
-use shared::*;
+use tuitalk_shared::*;
 use uuid::Uuid;
 
 fn color_from_uuid(uuid: Uuid) -> Color {

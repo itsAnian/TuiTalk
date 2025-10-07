@@ -1,6 +1,6 @@
 use crate::app;
 use anyhow::{Context, Result};
-use shared::*;
+use tuitalk_shared::*;
 use std::{
     num::ParseIntError,
     time::{SystemTime, UNIX_EPOCH},
