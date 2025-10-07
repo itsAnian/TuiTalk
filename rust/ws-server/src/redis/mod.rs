@@ -1,7 +1,7 @@
 use redis::cluster::{ClusterClient, ClusterClientBuilder, ClusterConnection};
 use redis::cluster_async::ClusterConnection as ClusterConnectionAsync;
 use redis::{PushInfo, Value};
-use shared::TalkProtocol;
+use tuitalk_shared::TalkProtocol;
 use std::{env, sync::Arc};
 use tokio::sync::{Mutex as TMutex, mpsc::{UnboundedSender as TUnboundedSender, UnboundedReceiver as TUnboundedReceiver}};
 use tokio_tungstenite::tungstenite::protocol::Message;
