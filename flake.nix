@@ -27,7 +27,6 @@
       in
         with pkgs; {
           devShells.default = pkgs.mkShell {
-            shellHook = ''echo "Command for docs: latexmk -pdf -shell-escape -output-directory=build main.tex"'';
             packages = [
               cargo
               rustfmt
@@ -37,42 +36,6 @@
               lld_18
               python3
               redis
-
-              # Latex depedencies
-              (pkgs.texlive.combine {
-                inherit
-                  (pkgs.texlive)
-                  scheme-small
-                  latexmk
-                  acronym
-                  amsmath
-                  babel
-                  biblatex
-                  bigfoot # or collection-latexextra
-                  csquotes
-                  enumitem
-                  catchfile
-                  svg
-                  transparent
-                  footmisc
-                  geometry
-                  glossaries
-                  hyperref
-                  listings
-                  microtype
-                  nag
-                  pdfpages
-                  pgf
-                  setspace
-                  todonotes
-                  wrapfig
-                  xstring
-                  ;
-              })
-
-              pkgs.inkscape
-              pkgs.zathura
-              pkgs.biber
             ];
           };
 
