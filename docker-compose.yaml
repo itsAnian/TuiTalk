@@ -113,18 +113,6 @@ services:
       redis-node-6:
         condition: service_started
 
-  tuitalk_wasm:
-    build:
-      context: rust
-      dockerfile: Dockerfile.wasm
-    container_name: tuitalk-wasm
-    ports:
-      - "7777:80"
-    depends_on:
-      - loadbalancer
-    networks:
-      - loadbalancing
-
   loadbalancer:
     build: loadbalancer
     container_name: loadbalancer

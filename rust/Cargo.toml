@@ -4,5 +4,4 @@ members = [
     "ws-server",
     "client",
     "shared",
-    "wasm-client"
 ]

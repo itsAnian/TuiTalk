@@ -22,64 +22,20 @@
     flake-utils.lib.eachDefaultSystem (
       system: let
         system = "x86_64-linux";
-        overlays = [ (import rust-overlay) ];
+        overlays = [(import rust-overlay)];
         pkgs = import nixpkgs {inherit system overlays;};
       in
         with pkgs; {
           devShells.default = pkgs.mkShell {
-            shellHook = ''echo "Command for docs: latexmk -pdf -shell-escape -output-directory=build main.tex"'';
-            buildInputs = [
-                 (pkgs.rust-bin.stable.latest.default.override {
-              extensions = [ "rust-src" ];
-              targets = [ "wasm32-unknown-unknown" ];
-            })
-            ];
             packages = [
               cargo
-              trunk
               rustfmt
               clippy
               bacon
               rust-analyzer
               lld_18
-              wasm-bindgen-cli
               python3
-              wasm-pack
               redis
-
-            # Latex depedencies
-            (pkgs.texlive.combine {
-              inherit (pkgs.texlive)
-                scheme-small
-                latexmk
-                acronym
-                amsmath
-                babel
-                biblatex
-                bigfoot # or collection-latexextra
-                csquotes
-                enumitem
-                catchfile
-                svg
-                transparent
-                footmisc
-                geometry
-                glossaries
-                hyperref
-                listings
-                microtype
-                nag
-                pdfpages
-                pgf
-                setspace
-                todonotes
-                wrapfig
-                xstring;
-              })
-
-              pkgs.inkscape
-              pkgs.zathura
-              pkgs.biber
             ];
           };
 
@@ -109,14 +65,6 @@
               buildInputs = [openssl];
             };
 
-            wasm-client = rustPlatform.buildRustPackage {
-              pname = "wasm-client";
-              version = "0.1.0";
-              src = ./rust;
-              cargoLock.lockFile = ./rust/Cargo.lock;
-              buildAndTestSubdir = "wasm-client";
-            };
-
             default = self.packages.${system}.client;
           };
 
@@ -124,12 +72,6 @@
             default = self.apps.${system}.client;
             client = flake-utils.lib.mkApp {drv = self.packages.${system}.client;};
             ws-server = flake-utils.lib.mkApp {drv = self.packages.${system}.ws-server;};
-            wasm-client = {
-              type = "app";
-              program = "${pkgs.writeShellScript "wasm-client-run" ''
-                exec ${pkgs.trunk}/bin/trunk serve -p 7777
-              ''}";
-            };
           };
         }
     );

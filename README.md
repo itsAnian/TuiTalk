@@ -28,10 +28,6 @@ If you want to connect to a specific websocket connection you can also define it
 cargo run -p client ws://localhost:8079
 ```
 
-### use Wasm-Client
-Connect to `http://localhost:7777` in your browser.
-If the connection is not working in the browser you might need to enable websockets in your browser, because we are not using WebSocket Secure.
-
 ## Tui-Client
 ### Movement
 To move you have the following commands:
@@ -49,7 +45,3 @@ When you have finished your message you can press enter to send it.
 - `/room {int}` joins the room you definesed in int
 - `/fetch {int}` fetches the given number of messages up from the first messages in your history
 - `/clear` clears the local messages
-
-## Wasm-Client
-The Wasm-Client implements the same commands given in the Commands section for the Tui-Client.
-To send Messages you need to click on the input field and enter your message and send it with pressing enter or the send button.
