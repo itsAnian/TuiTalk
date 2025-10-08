@@ -1,5 +1,0 @@
-## Core latex/pdflatex auxiliary files:
-/build/*
-/svg-inkscape/*
-/content/chapter/*
-!content/chapter/*.tex

@@ -63,7 +63,6 @@ impl TalkProtocol {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 pub mod native {
     use super::*;
     use futures_channel::mpsc::UnboundedReceiver;
@@ -130,64 +129,4 @@ pub mod native {
     }
 }
 
-//----------------------------------------------------------------------------------------------------WASM----------------------------------------------------------------------------------------------------
-
-pub mod wasm {
-    use super::TalkProtocol;
-    use futures_channel::mpsc::UnboundedReceiver;
-    use futures_util::SinkExt;
-    use futures_util::StreamExt;
-    use futures_util::stream::{SplitSink, SplitStream};
-    use gloo_net::websocket::Message;
-    use gloo_net::websocket::futures::WebSocket;
-
-    pub async fn sender_task(
-        mut rx: UnboundedReceiver<TalkProtocol>,
-        mut write: SplitSink<WebSocket, Message>,
-    ) {
-        while let Some(msg) = rx.next().await {
-            match bincode::serialize(&msg) {
-                Ok(bin) => {
-                    if let Err(e) = write.send(Message::Bytes(bin)).await {
-                        log::error!("WebSocket send error: {:?}", e);
-                        break;
-                    }
-                }
-                Err(e) => {
-                    log::error!("Serialization error: {:?}", e);
-                }
-            }
-        }
-        log::info!("Sender task ended");
-    }
-
-    pub async fn receiver_task(
-        mut read: SplitStream<WebSocket>,
-        on_message: impl FnMut(TalkProtocol) + 'static,
-    ) {
-        let mut callback = on_message;
-        while let Some(msg) = read.next().await {
-            match msg {
-                Ok(Message::Bytes(bin)) => {
-                    if let Ok(parsed) = TalkProtocol::deserialize(&bin) {
-                        callback(parsed);
-                    }
-                }
-                Ok(Message::Text(text)) => {
-                    log::info!("Received text message: {}", text);
-                }
-                Err(e) => {
-                    log::error!("WebSocket error: {:?}", e);
-                    break;
-                }
-            }
-        }
-        log::info!("Receiver task ended");
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-pub use wasm::*; // Expose WASM API
-
-#[cfg(not(target_arch = "wasm32"))]
 pub use native::*; // Expose native API

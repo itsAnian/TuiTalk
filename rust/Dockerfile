@@ -10,7 +10,7 @@ COPY ws-server/Cargo.toml ws-server/Cargo.toml
 COPY shared/Cargo.toml shared/Cargo.toml
 
 # Dummy crates for workspace members, which aren't needed
-RUN for crate in client wasm-client; do \
+RUN for crate in client; do \
       mkdir -p $crate/src && \
       echo '[package]' > $crate/Cargo.toml && \
       echo "name = \"${crate}\"" >> $crate/Cargo.toml && \
