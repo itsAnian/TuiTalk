@@ -13,7 +13,7 @@ use tokio;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "ws://0.0.0.0:8079".to_string());
+        .unwrap_or_else(|| "ws://0.0.0.0:8080".to_string());
 
     let (tx, rx) = unbounded::<TalkProtocol>();
     let (write, read) = connect(url).await?;
