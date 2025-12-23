@@ -28,6 +28,7 @@
         with pkgs; {
           devShells.default = pkgs.mkShell {
             packages = [
+              rust-bin.stable.latest.default
               cargo
               rustfmt
               clippy
