@@ -42,7 +42,7 @@ fn return_server_error(message: &String, code: &String) -> Result<Line<'static>>
     Ok(content)
 }
 
-fn return_local_error(message: &String) -> Result<Line> {
+fn return_local_error(message: &String) -> Result<Line<'_>> {
     let error = Span::styled(format!("Local Error"), Style::default().fg(Color::Red));
     let space = Span::raw(": ".to_string());
 
@@ -52,7 +52,7 @@ fn return_local_error(message: &String) -> Result<Line> {
     Ok(content)
 }
 
-fn return_local_information(message: &String) -> Result<Line> {
+fn return_local_information(message: &String) -> Result<Line<'_>> {
     let info = Span::styled(format!("Info"), Style::default().fg(Color::Green));
     let space = Span::raw(": ".to_string());
 
@@ -62,7 +62,7 @@ fn return_local_information(message: &String) -> Result<Line> {
     Ok(content)
 }
 
-fn return_user_left(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line> {
+fn return_user_left(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line<'_>> {
     let timestamp = format_timestamp(unixtime)?;
     let info = Span::styled(format!("Info: "), Style::default().fg(Color::Yellow));
     let username = Span::styled(username, Style::default().fg(color_from_uuid(uuid)));
@@ -73,7 +73,7 @@ fn return_user_left(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line
     Ok(content)
 }
 
-fn return_user_joined(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line> {
+fn return_user_joined(unixtime: u64, username: &String, uuid: Uuid) -> Result<Line<'_>> {
     let timestamp = format_timestamp(unixtime)?;
 
     let info = Span::styled(format!("Info: "), Style::default().fg(Color::Yellow));
@@ -103,7 +103,7 @@ fn return_username_changed<'a>(
     Ok(content)
 }
 
-fn return_posted_message(message: &TalkMessage) -> Result<Line> {
+fn return_posted_message(message: &TalkMessage) -> Result<Line<'_>> {
     let timestamp = format_timestamp(message.unixtime)?;
 
     let username = Span::styled(
@@ -179,25 +179,25 @@ pub fn draw(app: &mut App, frame: &mut Frame) {
                 username,
                 room_id: _,
                 unixtime,
-            } => return_user_joined(*unixtime, username, uuid.clone()),
+            } => return_user_joined(*unixtime, username, *uuid),
             TalkProtocol::UserLeft {
                 uuid,
                 username,
                 room_id: _,
                 unixtime,
-            } => return_user_left(*unixtime, username, uuid.clone()),
+            } => return_user_left(*unixtime, username, *uuid),
             TalkProtocol::UsernameChanged {
                 uuid,
                 username,
                 old_username,
                 unixtime,
-            } => return_username_changed(*unixtime, username, old_username, uuid.clone()),
+            } => return_username_changed(*unixtime, username, old_username, *uuid),
             _ => Ok(Line::from(Span::raw(format!("{:?}", proto)))),
         })
         .collect::<Result<Vec<Line>, anyhow::Error>>().expect("lines of text");
     let paragraph = Paragraph::new(lines).wrap(Wrap { trim: true });
 
-    let total_lines = paragraph.line_count(messages_area.width.into());
+    let total_lines = paragraph.line_count(messages_area.width);
     let visible_height = messages_area.height.saturating_sub(2) as usize;
     app.max_scroll = total_lines.saturating_sub(visible_height);
 
