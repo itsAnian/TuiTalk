@@ -2,7 +2,6 @@ use crate::redis::*;
 use anyhow::Result;
 use futures_util::{SinkExt, StreamExt, stream::TryStreamExt};
 use redis::Commands;
-use tuitalk_shared::{TalkMessage, TalkProtocol};
 use std::{env, net::SocketAddr, sync::Arc};
 use tokio::sync::Mutex as TMutex;
 use tokio::sync::mpsc::UnboundedSender;
@@ -12,6 +11,7 @@ use tokio::{
     runtime::Handle,
 };
 use tokio_tungstenite::tungstenite::Message;
+use tuitalk_shared::{TalkMessage, TalkProtocol};
 use uuid::Uuid;
 
 pub async fn handle_connection(
@@ -38,13 +38,7 @@ pub async fn handle_connection(
             .try_for_each(|msg| async {
                 let deserialize_msg: TalkProtocol =
                     bincode::deserialize(&msg.into_data()).expect("deserializing");
-                let _ = handle_message(
-                    deserialize_msg,
-                    &room_tx,
-                    tx.clone(),
-                    &shared_redis,
-                )
-                .await;
+                let _ = handle_message(deserialize_msg, &room_tx, tx.clone(), &shared_redis).await;
                 Ok(())
             })
             .await
@@ -152,7 +146,8 @@ async fn publish_message(
 ) -> Result<()> {
     let mut conn = shared_redis.lock().await;
     let msg_json = msg.serialize()?;
-    match conn.spublish(room_id, msg_json) {
+    println!("[SERVER] Publishing message: {:?}", msg_json);
+    match conn.publish(room_id, msg_json) {
         Ok(()) => {}
         Err(e) => {
             eprintln!("[SERVER] Redis publish error: {}", e);
@@ -171,12 +166,10 @@ pub async fn start_ws_server() -> Result<()> {
 
     println!("[SERVER] Listening on: {}", addr);
 
-    let redis_con = create_redis_connection()
-        .await
-        .expect("Redis connection failed");
+    let redis_con = create_redis_connection().await?;
+    // let better_redis_con = redis_con.as_pubsub();
 
     let shared_con: SharedRedis = Arc::new(TMutex::new(redis_con));
-
 
     while let Ok((stream, addr)) = listener.accept().await {
         let rd_clone = Arc::clone(&shared_con);
