@@ -8,11 +8,9 @@ use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::{mpsc::unbounded_channel, oneshot};
 use tokio::{
     net::{TcpListener, TcpStream},
-    runtime::Handle,
 };
 use tokio_tungstenite::tungstenite::Message;
-use tuitalk_shared::{TalkMessage, TalkProtocol};
-use uuid::Uuid;
+use tuitalk_shared::{TalkProtocol};
 
 pub async fn handle_connection(
     raw_stream: TcpStream,
@@ -38,7 +36,7 @@ pub async fn handle_connection(
             .try_for_each(|msg| async {
                 let deserialize_msg: TalkProtocol =
                     bincode::deserialize(&msg.into_data()).expect("deserializing");
-                let _ = handle_message(deserialize_msg, &room_tx, tx.clone(), &shared_redis).await;
+                let _ = handle_message(deserialize_msg, &room_tx, &shared_redis).await;
                 Ok(())
             })
             .await
@@ -65,7 +63,6 @@ pub async fn handle_connection(
 async fn handle_message(
     msg: TalkProtocol,
     room_tx: &UnboundedSender<(i32, oneshot::Sender<()>)>,
-    tx: UnboundedSender<Message>,
     shared_redis: &SharedRedis,
 ) -> Result<()> {
     println!("[SERVER] Received {:?}", msg);

@@ -6,7 +6,7 @@ services:
       context: rust
       dockerfile: Dockerfile
     environment:
-      - REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379
+      - REDIS_NODES=redis-node:6379
     networks:
       - tui-net
     ports:
