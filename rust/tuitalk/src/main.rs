@@ -4,10 +4,10 @@ mod ui;
 
 use crate::app::App;
 use futures_channel::mpsc::unbounded;
-use tuitalk_shared::TalkProtocol;
-pub use tuitalk_shared::native::{connect, receiver_task, sender_task};
 use std::sync::{Arc, Mutex};
 use tokio;
+use tuitalk_shared::TalkProtocol;
+pub use tuitalk_shared::native::{connect, receiver_task, sender_task};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,14 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let com = Arc::clone(&communication);
     tokio::spawn(receiver_task(read, move |msg| {
-        match msg {
-            TalkProtocol::History { text } => {
-                com.lock().unwrap().splice(0..0, text);
-            }
-            _ => {
-                com.lock().unwrap().push(msg);
-            }
-        }
+        com.lock().unwrap().push(msg);
     }));
 
     color_eyre::install()?;
