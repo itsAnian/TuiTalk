@@ -3,13 +3,11 @@ use anyhow::Result;
 use futures_util::{SinkExt, StreamExt, stream::TryStreamExt};
 use redis::Commands;
 use std::{env, net::SocketAddr, sync::Arc};
+use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex as TMutex;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::{mpsc::unbounded_channel, oneshot};
-use tokio::{
-    net::{TcpListener, TcpStream},
-};
-use tuitalk_shared::{TalkProtocol};
+use tuitalk_shared::TalkProtocol;
 
 pub async fn handle_connection(
     raw_stream: TcpStream,
@@ -100,6 +98,7 @@ async fn handle_message(
             publish_message(shared_redis, &msg, &message.room_id).await?;
         }
         TalkProtocol::ChangeName {
+            room_id,
             uuid,
             username,
             unixtime,
@@ -112,8 +111,7 @@ async fn handle_message(
                 unixtime: *unixtime,
             };
 
-            publish_message(shared_redis, &response, &0).await?; // Fix: add room_id to ChangeName
-            // Protocol
+            publish_message(shared_redis, &response, room_id).await?;
         }
 
         // Server -> Client events typically don't need handling here
