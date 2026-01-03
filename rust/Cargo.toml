@@ -2,6 +2,6 @@
 resolver = "3"
 members = [
     "ws-server",
-    "client",
+    "tuitalk",
     "shared",
 ]

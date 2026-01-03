@@ -1,9 +1,5 @@
 mod wsserver;
-mod database;
 mod redis;
-
-use openssl_sys as _;
-use pq_sys as _;
 
 use dotenvy::dotenv;
 use anyhow::Result;

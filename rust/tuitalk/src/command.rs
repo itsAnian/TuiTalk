@@ -177,6 +177,7 @@ fn parse_command_name(app: &mut app::App) -> Result<TalkProtocol> {
     let old_username = app.username.to_string();
     app.username = app.input.to_string();
     Ok(TalkProtocol::ChangeName {
+        room_id: app.room,
         uuid: app.uuid,
         username: app.username.to_string(),
         old_username: old_username.to_string(),
